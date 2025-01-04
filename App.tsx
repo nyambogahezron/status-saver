@@ -4,6 +4,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '@/screens/HomeScreen';
 import SettingsScreen from '@/screens/SettingsScreen';
 import CustomHeader from '@/components/ui/CustomHeader';
+import CleanUpScreen from '@/screens/CleanUpScreen';
+import FilesExplorer from '@/screens/FilesExplorer';
+import StatusScreen from '@/screens/Status';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +23,17 @@ function RootStack() {
         }}
       />
       <Stack.Screen name='Settings' component={SettingsScreen} />
+      <Stack.Screen name='CleanUp' component={CleanUpScreen} />
+      <Stack.Screen
+        name='FilesExplorer'
+        component={FilesExplorer}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name='Status'
+        component={StatusScreen}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }
