@@ -116,12 +116,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
+    fontFamily: 'Rb-Bold',
   },
   statusSubText: {
     textAlign: 'center',
     fontSize: 14,
     color: Colors.black3,
     marginVertical: 8,
+    fontFamily: 'Rb-Medium',
   },
   statusItem: {
     display: 'flex',
