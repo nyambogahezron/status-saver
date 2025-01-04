@@ -13,6 +13,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import StatusItem from '@/components/ui/StatusItem';
 
 const height = Dimensions.get('window').height;
 
@@ -34,18 +35,9 @@ export default function HomeScreen() {
               If not saved, the status will automatically disappear after 24
               hours and cannot be viewed again.
             </Text>
-            <View style={styles.statusGrid}>
+            <View>
               {unsavedStatuses && unsavedStatuses.length > 0 ? (
-                unsavedStatuses.slice(0, 6).map((_, index) => (
-                  <View key={index} style={styles.statusItem}>
-                    <Image
-                      source={{
-                        uri: 'https://via.placeholder.com/100',
-                      }}
-                      style={styles.statusImage}
-                    />
-                  </View>
-                ))
+                <StatusItem status={unsavedStatuses.slice(0, 6)} />
               ) : (
                 <Entypo name='arrow-with-circle-left' size={24} color='black' />
               )}
@@ -130,13 +122,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.black3,
     marginVertical: 8,
-  },
-  statusGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    gap: 2,
-    width: '100%',
   },
   statusItem: {
     display: 'flex',

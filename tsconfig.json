@@ -4,19 +4,10 @@
     "strict": true,
     "jsx": "react",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@assets/*": [
-        "./assets/*"
-      ],
-      "@lib/*": [
-        "./src/lib/*"
-      ]
+      "@/*": ["./src/*"],
+      "@assets/*": ["./assets/*"],
+      "@lib/*": ["./src/lib/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }
