@@ -12,7 +12,7 @@ export default function StatusListComponent({
 }: StatusCardProps) {
   return (
     <View style={styles.container}>
-      {data.map((item: any, index: number) => renderItem(item, index))}
+      {data && data.map((item: any, index: number) => renderItem(item, index))}
     </View>
   );
 }
@@ -25,5 +25,5 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
     gap: 2,
-   },
+  },
 });

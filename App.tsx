@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import Screens from '@/screens';
 import CustomHeader from '@/components/ui/CustomHeader';
 import { useFonts } from 'expo-font';
+import StatusHeader from '@/components/StatusHeader';
 
 const Stack = createNativeStackNavigator();
 SplashScreen.preventAutoHideAsync();
@@ -49,7 +50,7 @@ function RootStack() {
       <Stack.Screen
         name='Status'
         component={Screens.StatusScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true, header: () => <StatusHeader /> }}
       />
     </Stack.Navigator>
   );

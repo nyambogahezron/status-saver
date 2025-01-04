@@ -31,6 +31,6 @@ const styles = StyleSheet.create({
   statusImage: {
     width: '100%',
     height: 100,
-    borderRadius: 8,
+    borderRadius: 2,
   },
 });
