@@ -13,7 +13,8 @@
       "backgroundColor": "#52c5cc"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hezron.statussaver"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,11 +25,10 @@
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.INTERNET"
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ]
-    },
-    "web": {
-      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       [
