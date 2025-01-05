@@ -3,12 +3,13 @@ import React from 'react';
 
 import StatusItem from '@/components/ui/StatusItem';
 import { Colors } from '@/constants/Colors';
+import useImageStatusStore from '@/store';
 
 export default function HomeScreen() {
-  const unsavedStatuses = Array(30).fill(null);
+  const statusData = useImageStatusStore((state) => state.imagesStatus);
   return (
     <ScrollView style={styles.container}>
-      <StatusItem status={unsavedStatuses} />
+      <StatusItem status={statusData} />
     </ScrollView>
   );
 }
@@ -21,6 +22,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingTop: 4,
     paddingBottom: 100,
-     backgroundColor: Colors.greenLight,
+    backgroundColor: Colors.greenLight,
   },
 });

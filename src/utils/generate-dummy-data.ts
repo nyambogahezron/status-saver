@@ -6,7 +6,7 @@ interface ImageStatus {
   status: 'saved' | 'unsaved';
 }
 
-const generateImageStatusData = (count: number): ImageStatus[] => {
+export const generateImageStatusData = (count: number): ImageStatus[] => {
   const data: ImageStatus[] = [];
 
   for (let i = 0; i < count; i++) {
@@ -19,6 +19,3 @@ const generateImageStatusData = (count: number): ImageStatus[] => {
 
   return data;
 };
-
-const imageStatusData = generateImageStatusData(50);
-console.log(imageStatusData);

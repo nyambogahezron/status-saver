@@ -8,36 +8,37 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   TouchableOpacity,
   ScrollView,
   Dimensions,
 } from 'react-native';
 import StatusItem from '@/components/ui/StatusItem';
+import useImageStatusStore from '@/store';
+import { Image } from 'expo-image';
+import { blurHash } from '@/utils/blurHash';
 
 const height = Dimensions.get('window').height;
 
 export default function HomeScreen() {
-  const unsavedStatuses = Array(10).fill(null);
-  const savedStatuses = Array(8).fill(null);
-
   const navigation = useNavigation();
+
+  const statusData = useImageStatusStore((state) => state.imagesStatus);
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.statusSection}>
-        {unsavedStatuses && unsavedStatuses.length > 0 ? (
+        {statusData && statusData.length > 0 ? (
           <>
             <Text
               style={styles.statusInfo}
-            >{`You have ${unsavedStatuses.length} unsaved Status`}</Text>
+            >{`You have ${statusData.length} unsaved Status`}</Text>
             <Text style={styles.statusSubText}>
               If not saved, the status will automatically disappear after 24
               hours and cannot be viewed again.
             </Text>
             <View>
-              {unsavedStatuses && unsavedStatuses.length > 0 ? (
-                <StatusItem status={unsavedStatuses.slice(0, 6)} />
+              {statusData && statusData.length > 0 ? (
+                <StatusItem status={statusData.slice(0, 6)} />
               ) : (
                 <Entypo name='arrow-with-circle-left' size={24} color='black' />
               )}
@@ -66,21 +67,31 @@ export default function HomeScreen() {
       {/* Saved Status and Cleanup Section */}
       <View style={styles.actionSection}>
         <TouchableOpacity
+          activeOpacity={0.5}
           style={styles.actionItem}
           // @ts-ignore
 
           onPress={() => navigation.navigate('Status')}
         >
           <Text style={styles.actionTitle}>Status within 24 hours</Text>
-          <View style={styles.savedIcons}>
-            {savedStatuses.slice(0, 3).map((_, index) => (
-              <View key={index} style={styles.savedIcon}></View>
+          <View style={styles.savedIconsCon}>
+            {statusData.slice(0, 3).map((_, index) => (
+              <View key={index} style={styles.savedIcon}>
+                <Image
+                  source={statusData[index].url}
+                  style={styles.statusImage}
+                  placeholder={blurHash}
+                  contentFit='contain'
+                  transition={1000}
+                />
+              </View>
             ))}
-            <Text style={styles.savedCount}>+{savedStatuses.length - 3}</Text>
+            <Text style={styles.savedCount}>+{statusData.length - 3}</Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
+          activeOpacity={0.5}
           style={styles.actionItem}
           // @ts-ignore
 
@@ -91,6 +102,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
+          activeOpacity={0.5}
           style={styles.actionItem}
           // @ts-ignore
           onPress={() => navigation.navigate('FilesExplorer')}
@@ -109,8 +121,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
   },
   statusSection: {
-    padding: 16,
     backgroundColor: Colors.greenLight,
+    paddingHorizontal: 10,
+    paddingVertical: 30,
   },
   statusInfo: {
     fontSize: 18,
@@ -125,15 +138,12 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     fontFamily: 'Rb-Medium',
   },
-  statusItem: {
-    display: 'flex',
-    width: '32%',
-    marginBottom: 2,
-  },
+
   statusImage: {
     width: '100%',
-    height: 100,
-    borderRadius: 8,
+    height: '100%',
+    borderRadius: 50,
+    backgroundColor: Colors.greenLight2,
   },
   emptyStatus: {
     alignItems: 'center',
@@ -176,6 +186,7 @@ const styles = StyleSheet.create({
   actionTitle: {
     fontSize: 16,
     color: Colors.black2,
+    fontFamily: 'Rb-Regular',
   },
   cleanupText: {
     fontSize: 16,
@@ -184,6 +195,10 @@ const styles = StyleSheet.create({
   filesText: {
     fontSize: 16,
     color: Colors.black2,
+  },
+  savedIconsCon: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   savedIcons: {
     flexDirection: 'row',
@@ -195,6 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.gray1,
     borderRadius: 12,
     marginHorizontal: 2,
+    marginLeft: -6,
   },
   savedCount: {
     marginLeft: 8,

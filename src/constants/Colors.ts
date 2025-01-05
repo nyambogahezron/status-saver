@@ -8,6 +8,7 @@ const black3 = '#555';
 const gray = '#ccc';
 const gray1 = '#ddd';
 const greenLight = '#e8f5e9';
+const greenLight2 = '#0553';
 const red = '#e53935';
 
 export const Colors = {
@@ -21,6 +22,7 @@ export const Colors = {
   gray,
   green,
   greenLight,
+  greenLight2,
   black1,
   black2,
   black3,

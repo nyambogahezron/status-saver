@@ -1,3 +1,4 @@
+import { generateImageStatusData } from '@/utils/generate-dummy-data';
 import { create } from 'zustand';
 
 interface ImageStatus {
@@ -14,7 +15,7 @@ interface ImageStatusStore {
 }
 
 const useImageStatusStore = create<ImageStatusStore>((set) => ({
-  imagesStatus: [],
+  imagesStatus: generateImageStatusData(50),
   addImageStatus: (imageStatus) =>
     set((state) => ({
       imagesStatus: [...state.imagesStatus, imageStatus],
