@@ -43,7 +43,11 @@ export default function HomeScreen() {
                 <Entypo name='arrow-with-circle-left' size={24} color='black' />
               )}
             </View>
-            <CustomButton title='Save All' onPress={() => {}} />
+            <CustomButton
+              title='Save All'
+              onPress={() => {}}
+              customStyle={{ marginTop: 15 }}
+            />
           </>
         ) : (
           <View style={styles.emptyStatus}>
@@ -81,7 +85,7 @@ export default function HomeScreen() {
                   source={statusData[index].url}
                   style={styles.statusImage}
                   placeholder={blurHash}
-                  contentFit='contain'
+                  contentFit='cover'
                   transition={1000}
                 />
               </View>
@@ -135,8 +139,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     color: Colors.black3,
-    marginVertical: 8,
-    fontFamily: 'Rb-Medium',
+    marginVertical: 10,
+    fontFamily: 'Rb-Regular',
   },
 
   statusImage: {

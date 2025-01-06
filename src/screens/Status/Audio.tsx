@@ -1,10 +1,27 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { StyleSheet, ScrollView } from 'react-native';
+import React from 'react';
 
-export default function Audio() {
+import StatusItem from '@/components/ui/StatusItem';
+import { Colors } from '@/constants/Colors';
+import useImageStatusStore from '@/store';
+
+export default function Audios() {
+  const statusData = useImageStatusStore((state) => state.imagesStatus);
   return (
-    <View>
-      <Text>Audio</Text>
-    </View>
-  )
+    <ScrollView style={styles.container}>
+      <StatusItem status={statusData} />
+    </ScrollView>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    height: '100%',
+    width: '100%',
+    paddingHorizontal: 5,
+    paddingTop: 4,
+    paddingBottom: 100,
+    backgroundColor: Colors.greenLight,
+  },
+});
