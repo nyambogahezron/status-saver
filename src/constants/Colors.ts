@@ -26,7 +26,6 @@ export const Colors = {
   black1,
   black2,
   black3,
-
   gray1,
   red,
 };

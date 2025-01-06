@@ -1,11 +1,6 @@
+import { ImageStatus } from '@/types';
 import { generateImageStatusData } from '@/utils/generate-dummy-data';
 import { create } from 'zustand';
-
-interface ImageStatus {
-  id: string;
-  url: string;
-  status: 'saved' | 'unsaved';
-}
 
 interface ImageStatusStore {
   imagesStatus: ImageStatus[];
@@ -14,7 +9,7 @@ interface ImageStatusStore {
   toggleImageStatus: (id: string) => void;
 }
 
-const useImageStatusStore = create<ImageStatusStore>((set) => ({
+export const useImageStatusStore = create<ImageStatusStore>((set) => ({
   imagesStatus: generateImageStatusData(50),
   addImageStatus: (imageStatus) =>
     set((state) => ({
@@ -33,5 +28,3 @@ const useImageStatusStore = create<ImageStatusStore>((set) => ({
       ),
     })),
 }));
-
-export default useImageStatusStore;

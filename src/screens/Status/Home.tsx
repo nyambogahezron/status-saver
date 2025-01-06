@@ -3,7 +3,7 @@ import React from 'react';
 
 import StatusItem from '@/components/ui/StatusItem';
 import { Colors } from '@/constants/Colors';
-import useImageStatusStore from '@/store';
+import { useImageStatusStore } from '@/store';
 
 export default function HomeScreen() {
   const statusData = useImageStatusStore((state) => state.imagesStatus);

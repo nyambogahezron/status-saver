@@ -8,6 +8,7 @@ import {
   Share,
   FlatList,
   Text,
+  Pressable,
 } from 'react-native';
 import StatusListComponent from './StatusListComponent';
 import { Image } from 'expo-image';
@@ -16,8 +17,44 @@ import { Colors } from '@/constants/Colors';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BackButton from '../navigation/BackButton';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useEvent } from 'expo';
 
 const { height, width } = Dimensions.get('window');
+
+const VideoItem = ({ url }: { url: string }) => {
+  const player = useVideoPlayer(url, (player) => {
+    player.loop = true;
+    player.play();
+  });
+  const { isPlaying } = useEvent(player, 'playingChange', {
+    isPlaying: player.playing,
+  });
+
+  return (
+    <View style={styles.videoContainer}>
+      <VideoView
+        style={styles.fullScreenImage}
+        player={player}
+        allowsFullscreen
+        allowsPictureInPicture
+      />
+      <View style={styles.controlsContainer}>
+        <Pressable
+          onPress={() => {
+            if (isPlaying) {
+              player.pause();
+            } else {
+              player.play();
+            }
+          }}
+        >
+          <Text style={styles.controlText}>{isPlaying ? 'Pause' : 'Play'}</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+};
 
 export default function StatusItem({ status }: any) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -49,27 +86,38 @@ export default function StatusItem({ status }: any) {
     }
   };
 
+  const renderStatusItem = (status: any, index: number) => {
+    const isVideo = status.type === 'video';
+    return (
+      <View key={index} style={styles.statusItem}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => handleImagePress(index)}
+          style={styles.statusItem}
+        >
+          <Image
+            style={styles.statusImage}
+            source={status.url}
+            placeholder={{ blurHash }}
+            contentFit='cover'
+            transition={1000}
+          />
+          {isVideo && (
+            <Ionicons
+              name='play-circle'
+              size={45}
+              color='white'
+              style={styles.playIcon}
+            />
+          )}
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
     <>
-      <StatusListComponent
-        data={status}
-        renderItem={(status, index) => (
-          <View key={index} style={styles.statusItem}>
-            <TouchableOpacity
-              onPress={() => handleImagePress(index)}
-              style={styles.statusItem}
-            >
-              <Image
-                style={styles.statusImage}
-                source={status.url}
-                placeholder={{ blurHash }}
-                contentFit='cover'
-                transition={1000}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+      <StatusListComponent data={status} renderItem={renderStatusItem} />
       {selectedIndex !== null && (
         <Modal
           visible={modalVisible}
@@ -77,20 +125,20 @@ export default function StatusItem({ status }: any) {
           onRequestClose={() => setModalVisible(false)}
           presentationStyle='overFullScreen'
         >
-            <View style={styles.fullScreenContainer}>
+          <View style={styles.fullScreenContainer}>
             <View style={styles.header}>
               <BackButton onPress={() => setModalVisible(false)} />
               <View style={styles.imageCounter}>
-              <Text style={styles.counterText}>
-                {currentIndex + 1} / {status.length}
-              </Text>
+                <Text style={styles.counterText}>
+                  {currentIndex + 1} / {status.length}
+                </Text>
               </View>
               <MaterialIcons name='save-alt' size={24} color='white' />
               <TouchableOpacity
-              style={styles.shareButton}
-              onPress={handleShare}
+                style={styles.shareButton}
+                onPress={handleShare}
               >
-              <Ionicons name='share-social' size={24} color='white' />
+                <Ionicons name='share-social' size={24} color='white' />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -99,25 +147,34 @@ export default function StatusItem({ status }: any) {
               pagingEnabled
               initialScrollIndex={selectedIndex}
               getItemLayout={(data, index) => ({
-              length: width,
-              offset: width * index,
-              index,
+                length: width,
+                offset: width * index,
+                index,
               })}
               onViewableItemsChanged={handleViewableItemsChanged}
               viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
-              renderItem={({ item }) => (
-              <Image
-                style={styles.fullScreenImage}
-                source={item.url}
-                contentFit='contain'
-                transition={1000}
-              />
-              )}
+              renderItem={({ item }) =>
+                item.type === 'video' ? (
+                  <VideoItem url={item.url} />
+                ) : (
+                  <Image
+                    style={styles.fullScreenImage}
+                    source={item.url}
+                    contentFit='contain'
+                    transition={1000}
+                  />
+                )
+              }
               showsHorizontalScrollIndicator={true}
-              scrollIndicatorInsets={{ top: 10, left: 10, bottom: 10, right: 10 }}
-              indicatorStyle="white"
+              scrollIndicatorInsets={{
+                top: 10,
+                left: 10,
+                bottom: 10,
+                right: 10,
+              }}
+              indicatorStyle='white'
             />
-            </View>
+          </View>
         </Modal>
       )}
     </>
@@ -155,7 +212,6 @@ const styles = StyleSheet.create({
     padding: 10,
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
-
   fullScreenImage: {
     width: width,
     height: height - 20,
@@ -173,6 +229,25 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   counterText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  playIcon: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: '50%',
+    marginTop: -25,
+  },
+  videoContainer: {
+    width: width,
+    height: height - 20,
+  },
+  controlsContainer: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+  },
+  controlText: {
     color: 'white',
     fontSize: 16,
   },

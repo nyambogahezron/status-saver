@@ -3,13 +3,13 @@ import React from 'react';
 
 import StatusItem from '@/components/ui/StatusItem';
 import { Colors } from '@/constants/Colors';
-import useImageStatusStore from '@/store';
+import { useImageStatusStore } from '@/store';
 
 export default function Images() {
   const statusData = useImageStatusStore((state) => state.imagesStatus);
   return (
     <ScrollView style={styles.container}>
-      <StatusItem status={statusData} />
+      <StatusItem status={statusData.filter((item) => item.type === 'image')} />
     </ScrollView>
   );
 }

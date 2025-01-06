@@ -13,7 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import StatusItem from '@/components/ui/StatusItem';
-import useImageStatusStore from '@/store';
+import { useImageStatusStore } from '@/store';
 import { Image } from 'expo-image';
 import { blurHash } from '@/utils/blurHash';
 
