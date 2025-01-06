@@ -64,6 +64,12 @@
           "imageWidth": 200
         }
       ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
       "expo-font"
     ],
     "extra": {

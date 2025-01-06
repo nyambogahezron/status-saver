@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -19,6 +19,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BackButton from '../navigation/BackButton';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
+import { Audio } from 'expo-av';
 
 const { height, width } = Dimensions.get('window');
 
@@ -56,6 +57,54 @@ const VideoItem = ({ url }: { url: string }) => {
   );
 };
 
+const AudioItem = ({ url }: { url: string }) => {
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const playSound = async () => {
+    const { sound } = await Audio.Sound.createAsync({ uri: url });
+    setSound(sound);
+    await sound.playAsync();
+    setIsPlaying(true);
+  };
+
+  const pauseSound = async () => {
+    if (sound) {
+      await sound.pauseAsync();
+      setIsPlaying(false);
+    }
+  };
+
+  useEffect(() => {
+    return sound
+      ? () => {
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
+  return (
+    <View style={styles.audioContainer}>
+      <Pressable
+        onPress={() => {
+          if (isPlaying) {
+            pauseSound();
+          } else {
+            playSound();
+          }
+        }}
+      >
+        <Ionicons
+          name={isPlaying ? 'pause-circle' : 'play-circle'}
+          size={45}
+          color='white'
+          style={styles.playIcon}
+        />
+      </Pressable>
+    </View>
+  );
+};
+
 export default function StatusItem({ status }: any) {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -88,6 +137,7 @@ export default function StatusItem({ status }: any) {
 
   const renderStatusItem = (status: any, index: number) => {
     const isVideo = status.type === 'video';
+    const isAudio = status.type === 'audio';
     return (
       <View key={index} style={styles.statusItem}>
         <TouchableOpacity
@@ -95,13 +145,22 @@ export default function StatusItem({ status }: any) {
           onPress={() => handleImagePress(index)}
           style={styles.statusItem}
         >
-          <Image
-            style={styles.statusImage}
-            source={status.url}
-            placeholder={{ blurHash }}
-            contentFit='cover'
-            transition={1000}
-          />
+          {isAudio ? (
+            <Ionicons
+              name='musical-notes'
+              size={45}
+              color='white'
+              style={styles.playIcon}
+            />
+          ) : (
+            <Image
+              style={styles.statusImage}
+              source={status.url}
+              placeholder={{ blurHash }}
+              contentFit='cover'
+              transition={1000}
+            />
+          )}
           {isVideo && (
             <Ionicons
               name='play-circle'
@@ -156,6 +215,8 @@ export default function StatusItem({ status }: any) {
               renderItem={({ item }) =>
                 item.type === 'video' ? (
                   <VideoItem url={item.url} />
+                ) : item.type === 'audio' ? (
+                  <AudioItem url={item.url} />
                 ) : (
                   <Image
                     style={styles.fullScreenImage}
@@ -200,7 +261,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: Colors.black,
     paddingVertical: 10,
   },
   header: {
@@ -210,7 +271,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     padding: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: Colors.black,
   },
   fullScreenImage: {
     width: width,
@@ -250,5 +311,14 @@ const styles = StyleSheet.create({
   controlText: {
     color: 'white',
     fontSize: 16,
+  },
+  audioContainer: {
+    width: width,
+    height: height - 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'white',
+    backgroundColor: Colors.greenLight2,
   },
 });
