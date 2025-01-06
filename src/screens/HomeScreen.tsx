@@ -98,6 +98,16 @@ export default function HomeScreen() {
           activeOpacity={0.5}
           style={styles.actionItem}
           // @ts-ignore
+          onPress={() => navigation.navigate('SavedStatus')}
+        >
+          <Text style={styles.actionTitle}>Saved Status</Text>
+          <Text style={styles.filesText}>{`42`} </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.5}
+          style={styles.actionItem}
+          // @ts-ignore
 
           onPress={() => navigation.navigate('CleanUp')}
         >

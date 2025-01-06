@@ -52,6 +52,12 @@ function RootStack() {
         component={Screens.StatusScreen}
         options={{ headerShown: true, header: () => <StatusHeader /> }}
       />
+
+      <Stack.Screen
+        name='SavedStatus'
+        component={Screens.SavedStatus}
+        options={{ headerShown: true, header: () => <StatusHeader /> }}
+      />
     </Stack.Navigator>
   );
 }

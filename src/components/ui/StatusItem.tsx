@@ -146,12 +146,14 @@ export default function StatusItem({ status }: any) {
           style={styles.statusItem}
         >
           {isAudio ? (
-            <Ionicons
-              name='musical-notes'
-              size={45}
-              color='white'
-              style={styles.playIcon}
-            />
+            <View style={styles.statusImage}>
+              <Ionicons
+                name='musical-notes'
+                size={45}
+                color='white'
+                style={styles.playIcon}
+              />
+            </View>
           ) : (
             <Image
               style={styles.statusImage}
@@ -317,8 +319,5 @@ const styles = StyleSheet.create({
     height: height - 20,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'white',
-    backgroundColor: Colors.greenLight2,
   },
 });

@@ -4,6 +4,7 @@ import CustomHeader from '@/components/ui/CustomHeader';
 import CleanUpScreen from '@/screens/CleanUpScreen';
 import FilesExplorer from '@/screens/FilesExplorer';
 import StatusScreen from '@/screens/Status';
+import SavedStatus from '@/screens/SavedStatus';
 
 const Screens = {
   HomeScreen,
@@ -12,6 +13,7 @@ const Screens = {
   CleanUpScreen,
   FilesExplorer,
   StatusScreen,
+  SavedStatus,
 };
 
 export default Screens;
