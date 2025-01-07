@@ -13,18 +13,18 @@ export const generateImageStatusData = (count: number): ImageStatus[] => {
 
   const Videos = [
     'https://videos.pexels.com/video-files/29765109/12791166_1440_2560_60fps.mp4',
-    'https://videos.pexels.com/video-files/29889428/12831854_1440_2560_30fps.mp4',
-    'https://videos.pexels.com/video-files/29706156/12773869_640_360_60fps.mp4',
-    'https://videos.pexels.com/video-files/29828942/12811330_640_360_30fps.mp4',
-    'https://videos.pexels.com/video-files/29533146/12713561_640_360_60fps.mp4',
+    // 'https://videos.pexels.com/video-files/29889428/12831854_1440_2560_30fps.mp4',
+    // 'https://videos.pexels.com/video-files/29706156/12773869_640_360_60fps.mp4',
+    // 'https://videos.pexels.com/video-files/29828942/12811330_640_360_30fps.mp4',
+    // 'https://videos.pexels.com/video-files/29533146/12713561_640_360_60fps.mp4',
   ];
 
   const Audio = [
     'https://artlist.io/royalty-free-music/song/in-flight/133582',
-    'https://artlist.io/royalty-free-music/song/night-owl/133581',
-    'https://artlist.io/royalty-free-music/song/night-owl/133581',
-    'https://artlist.io/royalty-free-music/song/night-owl/133581',
-    'https://artlist.io/royalty-free-music/song/night-owl/133581',
+    // 'https://artlist.io/royalty-free-music/song/night-owl/133581',
+    // 'https://artlist.io/royalty-free-music/song/night-owl/133581',
+    // 'https://artlist.io/royalty-free-music/song/night-owl/133581',
+    // 'https://artlist.io/royalty-free-music/song/night-owl/133581',
   ];
 
   for (let i = 0; i < count; i++) {

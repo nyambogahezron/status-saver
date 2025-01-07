@@ -10,7 +10,7 @@ interface ImageStatusStore {
 }
 
 export const useImageStatusStore = create<ImageStatusStore>((set) => ({
-  imagesStatus: generateImageStatusData(50),
+  imagesStatus: generateImageStatusData(0),
   addImageStatus: (imageStatus) =>
     set((state) => ({
       imagesStatus: [...state.imagesStatus, imageStatus],

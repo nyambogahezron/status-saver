@@ -16,6 +16,7 @@ import StatusItem from '@/components/ui/StatusItem';
 import { useImageStatusStore } from '@/store';
 import { Image } from 'expo-image';
 import { blurHash } from '@/utils/blurHash';
+import { loadStatusFiles } from '@/utils/media-access';
 
 const height = Dimensions.get('window').height;
 
@@ -23,7 +24,9 @@ export default function HomeScreen() {
   const navigation = useNavigation();
 
   const statusData = useImageStatusStore((state) => state.imagesStatus);
+  const data = loadStatusFiles();
 
+  console.log('data', data);
   return (
     <ScrollView style={styles.container}>
       <View style={styles.statusSection}>
