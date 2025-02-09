@@ -7,8 +7,10 @@ import CustomHeader from '@/components/ui/CustomHeader';
 import { useFonts } from 'expo-font';
 import StatusHeader from '@/components/StatusHeader';
 
-const Stack = createNativeStackNavigator();
 SplashScreen.preventAutoHideAsync();
+
+const Stack = createNativeStackNavigator();
+
 
 function RootStack() {
   const [loaded, error] = useFonts({
