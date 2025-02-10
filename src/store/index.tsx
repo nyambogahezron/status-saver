@@ -1,35 +1,36 @@
-import { generateImageStatusData } from '@/utils/generate-dummy-data';
+import { LoadStatusFiles } from '@/utils/media-access';
 import { create } from 'zustand';
 
-export interface ImageStatus {
-	id: string;
-	url: string;
-	status: 'saved' | 'unsaved';
-	type: 'image' | 'video' | 'audio';
-}
-interface ImageStatusStore {
-	imagesStatus: ImageStatus[];
-	addImageStatus: (imageStatus: ImageStatus) => void;
-	removeImageStatus: (id: string) => void;
-	toggleImageStatus: (id: string) => void;
+export interface FileStatus {
+	uri: string;
+	name: string;
 }
 
-export const useImageStatusStore = create<ImageStatusStore>((set) => ({
-	imagesStatus: generateImageStatusData(0),
-	addImageStatus: (imageStatus) =>
-		set((state) => ({
-			imagesStatus: [...state.imagesStatus, imageStatus],
-		})),
-	removeImageStatus: (id) =>
-		set((state) => ({
-			imagesStatus: state.imagesStatus.filter((image) => image.id !== id),
-		})),
-	toggleImageStatus: (id) =>
-		set((state) => ({
-			imagesStatus: state.imagesStatus.map((image) =>
-				image.id === id
-					? { ...image, status: image.status === 'saved' ? 'unsaved' : 'saved' }
-					: image
-			),
-		})),
-}));
+interface StatusData {
+	photoFiles: FileStatus[];
+	videoFiles: FileStatus[];
+	audioFiles: FileStatus[];
+}
+
+interface StatusDataStore {
+	statusData: StatusData;
+}
+
+export const useStatusDataStore = create<StatusDataStore>((set) => {
+	LoadStatusFiles().then((statusData) => {
+		if (Array.isArray(statusData)) {
+			set({
+				statusData: {
+					photoFiles: [],
+					videoFiles: [],
+					audioFiles: [],
+				},
+			});
+		} else {
+			set({ statusData });
+		}
+	});
+	return {
+		statusData: { photoFiles: [], videoFiles: [], audioFiles: [] },
+	};
+});

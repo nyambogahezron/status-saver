@@ -1,112 +1,126 @@
-// import { PermissionsAndroid, Platform } from 'react-native';
-// import RNFS from 'react-native-fs';
+import { StorageAccessFramework } from 'expo-file-system';
+import DocumentPicker from 'react-native-document-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// async function requestStoragePermission() {
-//   if (Platform.OS === 'android') {
-//     try {
-//       const readGranted = await PermissionsAndroid.request(
-//         PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-//         {
-//           title: 'Storage Permission',
-//           message:
-//             'App needs access to your storage to read WhatsApp statuses.',
-//           buttonNeutral: 'Ask Me Later',
-//           buttonNegative: 'Cancel',
-//           buttonPositive: 'OK',
-//         }
-//       );
+export async function selectWhatsAppStatusFolder() {
+	try {
+		const storedUri = await AsyncStorage.getItem('statusFolderUri');
+		if (storedUri) {
+			const files = await StorageAccessFramework.readDirectoryAsync(storedUri);
 
-//       const writeGranted = await PermissionsAndroid.request(
-//         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-//         {
-//           title: 'Storage Permission',
-//           message:
-//             'App needs access to your storage to save WhatsApp statuses.',
-//           buttonNeutral: 'Ask Me Later',
-//           buttonNegative: 'Cancel',
-//           buttonPositive: 'OK',
-//         }
-//       );
+			const statusFiles = files
+				.map((fileUri) => ({
+					uri: fileUri,
+					name: fileUri.split('/').pop() || '',
+				}))
+				.filter((file) => file.name);
 
-//       return (
-//         readGranted === PermissionsAndroid.RESULTS.GRANTED &&
-//         writeGranted === PermissionsAndroid.RESULTS.GRANTED
-//       );
-//     } catch (err) {
-//       console.warn(err);
-//       return false;
-//     }
-//   }
-//   return true; // For iOS, permissions are handled differently.
-// }
+			const photoFiles = statusFiles.filter((file) =>
+				file.name.match(/\.(jpg|jpeg|png)$/i)
+			);
+			const videoFiles = statusFiles.filter((file) =>
+				file.name.match(/\.(mp4|mkv|avi)$/i)
+			);
+			const audioFiles = statusFiles.filter((file) =>
+				file.name.match(/\.(mp3|wav|m4a)$/i)
+			);
 
-// export async function loadWhatsAppStatuses() {
-//   const hasPermission = await requestStoragePermission();
-//   if (!hasPermission) {
-//     throw new Error('Storage permission denied');
-//   }
+			const statusData = {
+				photoFiles,
+				videoFiles,
+				audioFiles,
+			};
 
-//   // Path to WhatsApp statuses
-//   const statusFolderPath =
-//     '/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/.Statuses';
-//   const newFolderPath = '/storage/emulated/0/WhatsAppStatuses';
+			return statusData;
+		}
 
-//   try {
-//     // Check if the new folder exists, if not create it
-//     const newFolderExists = await RNFS.exists(newFolderPath);
-//     if (!newFolderExists) {
-//       try {
-//         await RNFS.mkdir(newFolderPath);
-//       } catch (mkdirError) {
-//         console.error('Error creating new folder:', mkdirError);
-//         throw new Error('Directory could not be created');
-//       }
-//     }
+		return null;
+	} catch (error) {
+		console.error('Error loading stored folder:', error);
+	}
+}
 
-//     // Read the directory
-//     const files = await RNFS.readDir(statusFolderPath);
+export async function LoadStatusFiles() {
+	try {
+		const storedUri = await AsyncStorage.getItem('statusFolderUri');
+		if (storedUri) {
+			const files = await StorageAccessFramework.readDirectoryAsync(storedUri);
 
-//     // Move and rename files
-//     const movedFiles = await Promise.all(
-//       files.map(async (file) => {
-//         const newFilePath = `${newFolderPath}/${file.name}`;
-//         await RNFS.moveFile(file.path, newFilePath);
-//         return newFilePath;
-//       })
-//     );
+			const statusFiles = files
+				.map((fileUri) => ({
+					uri: fileUri,
+					name: fileUri.split('/').pop() || '',
+				}))
+				.filter((file) => file.name);
 
-//     return movedFiles;
-//   } catch (error) {
-//     console.error('Error processing WhatsApp status folder:', error);
-//     throw error;
-//   }
-// }
+			const photoFiles = statusFiles.filter((file) =>
+				file.name.match(/\.(jpg|jpeg|png)$/i)
+			);
+			const videoFiles = statusFiles.filter((file) =>
+				file.name.match(/\.(mp4|mkv|avi)$/i)
+			);
+			const audioFiles = statusFiles.filter((file) =>
+				file.name.match(/\.(mp3|wav|m4a)$/i)
+			);
 
-// async function getStatusFiles() {
-//   const statusFolderPath = '/storage/emulated/0/Statuses';
+			const statusData = {
+				photoFiles,
+				videoFiles,
+				audioFiles,
+			};
 
-//   try {
-//     // Check if the folder exists
-//     const folderExists = await RNFS.exists(statusFolderPath);
-//     console.log('dev Folder exists:', folderExists);
+			return statusData;
+		}
 
-//     if (folderExists) {
-//       const files = await RNFS.readDir(statusFolderPath);
-//       console.log('Files in folder:', files);
+		if (!storedUri) {
+			try {
+				const permissions =
+					await StorageAccessFramework.requestDirectoryPermissionsAsync();
+				if (permissions.granted) {
+					const uri = permissions.directoryUri;
 
-//       // Filter for files only (ignore directories)
-//       const statusFiles = files;
-//       console.log('dev:', statusFiles);
+					await AsyncStorage.setItem('statusFolderUri', uri);
 
-//       return statusFiles.map((file) => file.path); // Return paths of the files
-//     } else {
-//       console.log('dev Folder does not exist');
-//       return [];
-//     }
-//   } catch (error) {
-//     console.error('Error reading WhatsApp status folder:', error);
-//     return [];
-//   }
-// }
+					const files = await StorageAccessFramework.readDirectoryAsync(uri);
 
-// // getStatusFiles();
+					const statusFiles = files
+						.map((fileUri) => ({
+							uri: fileUri,
+							name: fileUri.split('/').pop() || '',
+						}))
+						.filter((file) => file.name);
+
+					const photoFiles = statusFiles.filter((file) =>
+						file.name.match(/\.(jpg|jpeg|png)$/i)
+					);
+					const videoFiles = statusFiles.filter((file) =>
+						file.name.match(/\.(mp4|mkv|avi)$/i)
+					);
+					const audioFiles = statusFiles.filter((file) =>
+						file.name.match(/\.(mp3|wav|m4a)$/i)
+					);
+
+					const statusData = {
+						photoFiles,
+						videoFiles,
+						audioFiles,
+					};
+
+					return statusData;
+				} else {
+					console.log('User cancelled folder selection');
+				}
+			} catch (error) {
+				if (DocumentPicker.isCancel(error)) {
+					console.log('User cancelled folder selection');
+				} else {
+					console.error('Error selecting folder:', error);
+				}
+			}
+		}
+
+		return [];
+	} catch (error) {
+		console.error('Error loading stored folder:', error);
+	}
+}
