@@ -1,240 +1,191 @@
+import {
+	View,
+	Text,
+	ScrollView,
+	StyleSheet,
+	Alert,
+	TouchableOpacity,
+} from 'react-native';
+import React, { useState } from 'react';
 import CustomButton from '@/components/ui/CustomButton';
 import { Colors } from '@/constants/Colors';
-import { useNavigation } from '@react-navigation/native';
-import AntDesign from '@expo/vector-icons/AntDesign';
-import Entypo from '@expo/vector-icons/Entypo';
-import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Dimensions,
-} from 'react-native';
+import { StorageAccessFramework } from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
+import DocumentPicker from 'react-native-document-picker';
 import StatusItem from '@/components/ui/StatusItem';
-import { useImageStatusStore } from '@/store';
-import { Image } from 'expo-image';
-import { blurHash } from '@/utils/blurHash';
-import { loadWhatsAppStatuses } from '@/utils/media-access';
-
-const height = Dimensions.get('window').height;
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
-  const navigation = useNavigation();
+	const [photoFiles, setPhotoFiles] = React.useState<
+		{ uri: string; name: string }[]
+	>([]);
+	const [videoFiles, setVideoFiles] = React.useState<
+		{ uri: string; name: string }[]
+	>([]);
+	const [audioFiles, setAudioFiles] = React.useState<
+		{ uri: string; name: string }[]
+	>([]);
+	const [activeTab, setActiveTab] = useState('Images');
 
-  const statusData = useImageStatusStore((state) => state.imagesStatus);
-  
-  loadWhatsAppStatuses()
-    .then((files) => console.log('WhatsApp Statuses:', files))
-    .catch((error) => console.error('Error loading statuses:', error));
+	const requestPermissions = async () => {
+		const { status } = await MediaLibrary.requestPermissionsAsync();
+		if (status !== 'granted') {
+			Alert.alert(
+				'Permission Denied',
+				'You need to grant storage permission to access statuses.'
+			);
+		}
+	};
 
+	const loadStoredFolder = async () => {
+		try {
+			const storedUri = await AsyncStorage.getItem('statusFolderUri');
+			if (storedUri) {
+				const files = await StorageAccessFramework.readDirectoryAsync(
+					storedUri
+				);
 
-  return (
-    <ScrollView style={styles.container}>
-      <View style={styles.statusSection}>
-        {statusData && statusData.length > 0 ? (
-          <>
-            <Text
-              style={styles.statusInfo}
-            >{`You have ${statusData.length} unsaved Status`}</Text>
-            <Text style={styles.statusSubText}>
-              If not saved, the status will automatically disappear after 24
-              hours and cannot be viewed again.
-            </Text>
-            <View>
-              {statusData && statusData.length > 0 ? (
-                <StatusItem status={statusData.slice(0, 6)} />
-              ) : (
-                <Entypo name='arrow-with-circle-left' size={24} color='black' />
-              )}
-            </View>
-            <CustomButton
-              title='Save All'
-              onPress={() => {}}
-              customStyle={{ marginTop: 15 }}
-            />
-          </>
-        ) : (
-          <View style={styles.emptyStatus}>
-            <AntDesign name='checkcircleo' size={30} color='green' />
-            <Text style={styles.emptyStatusText}>
-              All status have been saved
-            </Text>
-            <Text style={styles.emptyStatusDesc}>
-              View some status in WhatsApp and Come back
-            </Text>
+				const statusFiles = files
+					.map((fileUri) => ({
+						uri: fileUri,
+						name: fileUri.split('/').pop() || '',
+					}))
+					.filter((file) => file.name);
 
-            <CustomButton
-              title='Check Now'
-              onPress={() => {}}
-              customStyle={styles.emptyStatusButton}
-            />
-          </View>
-        )}
-      </View>
+				const photoFiles = statusFiles.filter((file) =>
+					file.name.match(/\.(jpg|jpeg|png)$/i)
+				);
+				const videoFiles = statusFiles.filter((file) =>
+					file.name.match(/\.(mp4|mkv|avi)$/i)
+				);
+				const audioFiles = statusFiles.filter((file) =>
+					file.name.match(/\.(mp3|wav|m4a)$/i)
+				);
+				setPhotoFiles(photoFiles);
+				setVideoFiles(videoFiles);
+				setAudioFiles(audioFiles);
+			}
+		} catch (error) {
+			console.error('Error loading stored folder:', error);
+		}
+	};
 
-      {/* Saved Status and Cleanup Section */}
-      <View style={styles.actionSection}>
-        <TouchableOpacity
-          activeOpacity={0.5}
-          style={styles.actionItem}
-          // @ts-ignore
+	React.useEffect(() => {
+		requestPermissions();
+		loadStoredFolder();
+	}, []);
 
-          onPress={() => navigation.navigate('Status')}
-        >
-          <Text style={styles.actionTitle}>Status within 24 hours</Text>
-          <View style={styles.savedIconsCon}>
-            {statusData.slice(0, 3).map((_, index) => (
-              <View key={index} style={styles.savedIcon}>
-                <Image
-                  source={statusData[index].url}
-                  style={styles.statusImage}
-                  placeholder={blurHash}
-                  contentFit='cover'
-                  transition={1000}
-                />
-              </View>
-            ))}
-            <Text style={styles.savedCount}>+{statusData.length - 3}</Text>
-          </View>
-        </TouchableOpacity>
+	const selectWhatsAppStatusFolder = async () => {
+		try {
+			const permissions =
+				await StorageAccessFramework.requestDirectoryPermissionsAsync();
+			if (permissions.granted) {
+				const uri = permissions.directoryUri;
+				await AsyncStorage.setItem('statusFolderUri', uri);
+				const files = await StorageAccessFramework.readDirectoryAsync(uri);
 
-        <TouchableOpacity
-          activeOpacity={0.5}
-          style={styles.actionItem}
-          // @ts-ignore
-          onPress={() => navigation.navigate('SavedStatus')}
-        >
-          <Text style={styles.actionTitle}>Saved Status</Text>
-          <Text style={styles.filesText}>{`42`} </Text>
-        </TouchableOpacity>
+				const statusFiles = files
+					.map((fileUri) => ({
+						uri: fileUri,
+						name: fileUri.split('/').pop() || '',
+					}))
+					.filter((file) => file.name);
 
-        <TouchableOpacity
-          activeOpacity={0.5}
-          style={styles.actionItem}
-          // @ts-ignore
+				const photoFiles = statusFiles.filter((file) =>
+					file.name.match(/\.(jpg|jpeg|png)$/i)
+				);
+				const videoFiles = statusFiles.filter((file) =>
+					file.name.match(/\.(mp4|mkv|avi)$/i)
+				);
+				const audioFiles = statusFiles.filter((file) =>
+					file.name.match(/\.(mp3|wav|m4a)$/i)
+				);
+				setPhotoFiles(photoFiles);
+				setVideoFiles(videoFiles);
+				setAudioFiles(audioFiles);
+			} else {
+				console.log('User cancelled folder selection');
+			}
+		} catch (error) {
+			if (DocumentPicker.isCancel(error)) {
+				console.log('User cancelled folder selection');
+			} else {
+				console.error('Error selecting folder:', error);
+			}
+		}
+	};
 
-          onPress={() => navigation.navigate('CleanUp')}
-        >
-          <Text style={styles.actionTitle}>Clean up WhatsApp</Text>
-          <Text style={styles.cleanupText}>Clean 228.3 MB</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.5}
-          style={styles.actionItem}
-          // @ts-ignore
-          onPress={() => navigation.navigate('FilesExplorer')}
-        >
-          <Text style={styles.actionTitle}>WhatsApp files</Text>
-          <Text style={styles.filesText}>560</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
-  );
+	return (
+		<ScrollView style={styles.container}>
+			<CustomButton
+				title='Select WhatsApp Status Folder'
+				onPress={selectWhatsAppStatusFolder}
+				customStyle={{ marginTop: 15, width: '95%', alignSelf: 'center' }}
+			/>
+			<View style={styles.tabContainer}>
+				<TouchableOpacity
+					onPress={() => setActiveTab('Images')}
+					style={[styles.tab, activeTab === 'Images' && styles.activeTab]}
+				>
+					<Text style={styles.tabText}>Images</Text>
+				</TouchableOpacity>
+				<TouchableOpacity
+					onPress={() => setActiveTab('Videos')}
+					style={[styles.tab, activeTab === 'Videos' && styles.activeTab]}
+				>
+					<Text style={styles.tabText}>Videos</Text>
+				</TouchableOpacity>
+				<TouchableOpacity
+					onPress={() => setActiveTab('Audio')}
+					style={[styles.tab, activeTab === 'Audio' && styles.activeTab]}
+				>
+					<Text style={styles.tabText}>Audio</Text>
+				</TouchableOpacity>
+			</View>
+			<View style={{ marginTop: 15 }}>
+				{activeTab === 'Images' &&
+					(photoFiles.length > 0 ? (
+						<StatusItem status={photoFiles} />
+					) : (
+						<Text>No photo files found</Text>
+					))}
+				{activeTab === 'Videos' &&
+					(videoFiles.length > 0 ? (
+						<StatusItem status={videoFiles} />
+					) : (
+						<Text>No video files found</Text>
+					))}
+				{activeTab === 'Audio' &&
+					(audioFiles.length > 0 ? (
+						<StatusItem status={audioFiles} />
+					) : (
+						<Text>No audio files found</Text>
+					))}
+			</View>
+		</ScrollView>
+	);
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.white,
-  },
-  statusSection: {
-    backgroundColor: Colors.greenLight,
-    paddingHorizontal: 10,
-    paddingVertical: 30,
-  },
-  statusInfo: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontFamily: 'Rb-Bold',
-  },
-  statusSubText: {
-    textAlign: 'center',
-    fontSize: 14,
-    color: Colors.black3,
-    marginVertical: 10,
-    fontFamily: 'Rb-Regular',
-  },
-
-  statusImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 50,
-    backgroundColor: Colors.greenLight2,
-  },
-  emptyStatus: {
-    alignItems: 'center',
-    width: '100%',
-    justifyContent: 'center',
-    minHeight: height * 0.55,
-  },
-  emptyStatusText: {
-    fontSize: 25,
-    fontWeight: 600,
-    color: Colors.black1,
-    marginBottom: 5,
-  },
-  emptyStatusDesc: {
-    fontSize: 15,
-    fontWeight: 500,
-    color: Colors.black1,
-    marginBottom: 5,
-  },
-  emptyStatusButton: {
-    backgroundColor: Colors.green,
-    color: Colors.white,
-    width: '90%',
-    alignSelf: 'center',
-    borderRadius: 20,
-    marginTop: 30,
-  },
-  actionSection: {
-    padding: 16,
-    backgroundColor: Colors.white,
-  },
-  actionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.gray1,
-  },
-  actionTitle: {
-    fontSize: 16,
-    color: Colors.black2,
-    fontFamily: 'Rb-Regular',
-  },
-  cleanupText: {
-    fontSize: 16,
-    color: Colors.red,
-  },
-  filesText: {
-    fontSize: 16,
-    color: Colors.black2,
-  },
-  savedIconsCon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  savedIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  savedIcon: {
-    width: 24,
-    height: 24,
-    backgroundColor: Colors.gray1,
-    borderRadius: 12,
-    marginHorizontal: 2,
-    marginLeft: -6,
-  },
-  savedCount: {
-    marginLeft: 8,
-    color: Colors.black2,
-    fontSize: 16,
-  },
+	container: {
+		flex: 1,
+		backgroundColor: Colors.white,
+	},
+	tabContainer: {
+		flexDirection: 'row',
+		justifyContent: 'space-around',
+		marginTop: 15,
+	},
+	tab: {
+		padding: 10,
+		borderBottomWidth: 2,
+		borderBottomColor: 'transparent',
+	},
+	activeTab: {
+		borderBottomColor: Colors.primaryColor,
+	},
+	tabText: {
+		fontSize: 16,
+		color: Colors.primaryColor,
+	},
 });

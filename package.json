@@ -19,7 +19,7 @@
     "expo-blur": "~14.0.3",
     "expo-dev-client": "~5.0.11",
     "expo-document-picker": "~13.0.3",
-    "expo-file-system": "~18.0.6",
+    "expo-file-system": "~18.0.10",
     "expo-font": "~13.0.2",
     "expo-image": "~2.0.4",
     "expo-image-picker": "~16.0.5",
@@ -42,7 +42,8 @@
     "react-native-video": "^6.9.0",
     "react-native-video-controls": "^2.8.1",
     "rn-fetch-blob": "^0.12.0",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.2",
+    "@react-native-async-storage/async-storage": "1.23.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
