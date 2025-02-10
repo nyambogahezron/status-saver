@@ -9,7 +9,7 @@ export default function Videos() {
 
 	return (
 		<ScrollView style={styles.container}>
-			<StatusItem status={statusData.videoFiles} />
+			<StatusItem status={statusData.videoFiles} statusType='video' />
 		</ScrollView>
 	);
 }

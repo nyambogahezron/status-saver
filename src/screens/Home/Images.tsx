@@ -9,7 +9,7 @@ export default function Images() {
 
 	return (
 		<ScrollView style={styles.container}>
-			<StatusItem status={statusData.photoFiles} />
+			<StatusItem status={statusData.photoFiles} statusType='image' />
 		</ScrollView>
 	);
 }

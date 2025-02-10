@@ -6,7 +6,6 @@ import {
 	Modal,
 	TouchableOpacity,
 	Share,
-	FlatList,
 	Text,
 	Pressable,
 } from 'react-native';
@@ -20,8 +19,15 @@ import BackButton from '../navigation/BackButton';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import { Audio } from 'expo-av';
+import { FlashList } from '@shopify/flash-list';
+import * as MediaLibrary from 'expo-media-library';
 
 const { height, width } = Dimensions.get('window');
+
+type StatusItemProps = {
+	status: any;
+	statusType: 'image' | 'video' | 'audio';
+};
 
 const VideoItem = ({ url }: { url: string }) => {
 	const player = useVideoPlayer(url, (player) => {
@@ -105,7 +111,10 @@ const AudioItem = ({ url }: { url: string }) => {
 	);
 };
 
-export default function StatusItem({ status }: any) {
+export default function StatusItem({
+	status,
+	statusType,
+}: StatusItemProps): JSX.Element {
 	const [modalVisible, setModalVisible] = useState(false);
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 	const [currentIndex, setCurrentIndex] = useState<number>(0);
@@ -114,6 +123,16 @@ export default function StatusItem({ status }: any) {
 		setSelectedIndex(index);
 		setCurrentIndex(index);
 		setModalVisible(true);
+	};
+
+	const handleOnStatusSave = async () => {
+		if (selectedIndex !== null) {
+			try {
+				await MediaLibrary.saveToLibraryAsync(status[selectedIndex].url);
+			} catch (error) {
+				console.error('Error saving the image:', error);
+			}
+		}
 	};
 
 	const handleShare = async () => {
@@ -135,9 +154,13 @@ export default function StatusItem({ status }: any) {
 		}
 	};
 
-	const renderStatusItem = (status: any, index: number) => {
-		const isVideo = status.type === 'video';
-		const isAudio = status.type === 'audio';
+	const renderStatusItem = (
+		status: any,
+		index: number,
+		statusType: 'image' | 'video' | 'audio'
+	) => {
+		const isVideo = statusType === 'video';
+		const isAudio = statusType === 'audio';
 		return (
 			<View key={index} style={styles.statusItem}>
 				<TouchableOpacity
@@ -178,13 +201,20 @@ export default function StatusItem({ status }: any) {
 
 	return (
 		<>
-			<StatusListComponent data={status} renderItem={renderStatusItem} />
+			<StatusListComponent
+				data={status}
+				renderItem={renderStatusItem}
+				statusType={statusType}
+			/>
+
+			{/* full screen status preview modal */}
 			{selectedIndex !== null && (
 				<Modal
 					visible={modalVisible}
 					transparent={true}
 					onRequestClose={() => setModalVisible(false)}
 					presentationStyle='overFullScreen'
+					statusBarTranslucent={true}
 				>
 					<View style={styles.fullScreenContainer}>
 						<View style={styles.header}>
@@ -194,7 +224,9 @@ export default function StatusItem({ status }: any) {
 									{currentIndex + 1} / {status.length}
 								</Text>
 							</View>
-							<MaterialIcons name='save-alt' size={24} color='white' />
+							<TouchableOpacity onPress={handleOnStatusSave}>
+								<MaterialIcons name='save-alt' size={24} color='white' />
+							</TouchableOpacity>
 							<TouchableOpacity
 								style={styles.shareButton}
 								onPress={handleShare}
@@ -202,19 +234,18 @@ export default function StatusItem({ status }: any) {
 								<Ionicons name='share-social' size={24} color='white' />
 							</TouchableOpacity>
 						</View>
-						<FlatList
+						<FlashList
 							data={status}
 							horizontal
 							pagingEnabled
 							initialScrollIndex={selectedIndex}
-							getItemLayout={(data, index) => ({
-								length: width,
-								offset: width * index,
-								index,
-							})}
 							onViewableItemsChanged={handleViewableItemsChanged}
 							viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
-							renderItem={({ item }) =>
+							renderItem={({
+								item,
+							}: {
+								item: { type: string; url: string; uri: string };
+							}) =>
 								item.type === 'video' ? (
 									<VideoItem url={item.url} />
 								) : item.type === 'audio' ? (
@@ -272,17 +303,16 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		alignItems: 'center',
 		width: '100%',
-		padding: 10,
+		paddingVertical: 10,
+		paddingHorizontal: 15,
 		backgroundColor: Colors.black,
+		marginTop: 100,
 	},
 	fullScreenImage: {
 		width: width,
 		height: height - 20,
 	},
-	backButton: {
-		position: 'relative',
-		zIndex: 1,
-	},
+
 	shareButton: {
 		zIndex: 1,
 	},

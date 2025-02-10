@@ -9,7 +9,7 @@ export default function Audios() {
 
 	return (
 		<ScrollView style={styles.container}>
-			<StatusItem status={statusData.audioFiles} />
+			<StatusItem status={statusData.audioFiles} statusType='audio' />
 		</ScrollView>
 	);
 }
