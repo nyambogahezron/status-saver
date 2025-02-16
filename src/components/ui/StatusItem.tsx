@@ -8,6 +8,8 @@ import {
 	Share,
 	Text,
 	Pressable,
+	Alert,
+	FlatList,
 } from 'react-native';
 import StatusListComponent from './StatusListComponent';
 import { Image } from 'expo-image';
@@ -19,8 +21,8 @@ import BackButton from '../navigation/BackButton';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import { Audio } from 'expo-av';
-import { FlashList } from '@shopify/flash-list';
-import * as MediaLibrary from 'expo-media-library';
+import { saveStatusToGallery } from '@/utils/media-access';
+import { createFolderAndCopyFile } from '@/utils/save-files';
 
 const { height, width } = Dimensions.get('window');
 
@@ -127,11 +129,7 @@ export default function StatusItem({
 
 	const handleOnStatusSave = async () => {
 		if (selectedIndex !== null) {
-			try {
-				await MediaLibrary.saveToLibraryAsync(status[selectedIndex].url);
-			} catch (error) {
-				console.error('Error saving the image:', error);
-			}
+			await createFolderAndCopyFile(status[selectedIndex].uri);
 		}
 	};
 
@@ -234,40 +232,45 @@ export default function StatusItem({
 								<Ionicons name='share-social' size={24} color='white' />
 							</TouchableOpacity>
 						</View>
-						<FlashList
-							data={status}
-							horizontal
-							pagingEnabled
-							initialScrollIndex={selectedIndex}
-							onViewableItemsChanged={handleViewableItemsChanged}
-							viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
-							renderItem={({
-								item,
-							}: {
-								item: { type: string; url: string; uri: string };
-							}) =>
-								item.type === 'video' ? (
-									<VideoItem url={item.url} />
-								) : item.type === 'audio' ? (
-									<AudioItem url={item.url} />
-								) : (
-									<Image
-										style={styles.fullScreenImage}
-										source={item.uri}
-										contentFit='contain'
-										transition={1000}
-									/>
-								)
-							}
-							showsHorizontalScrollIndicator={true}
-							scrollIndicatorInsets={{
-								top: 10,
-								left: 10,
-								bottom: 10,
-								right: 10,
-							}}
-							indicatorStyle='white'
-						/>
+						<View>
+							{modalVisible && (
+								<FlatList
+									data={status}
+									horizontal
+									pagingEnabled
+									initialScrollIndex={selectedIndex}
+									getItemLayout={(data, index) => ({
+										length: width,
+										offset: width * index,
+										index,
+									})}
+									onViewableItemsChanged={handleViewableItemsChanged}
+									viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
+									renderItem={({ item }) =>
+										item.type === 'video' ? (
+											<VideoItem url={item.url} />
+										) : item.type === 'audio' ? (
+											<AudioItem url={item.url} />
+										) : (
+											<Image
+												style={styles.fullScreenImage}
+												source={item.uri}
+												contentFit='contain'
+												transition={1000}
+											/>
+										)
+									}
+									showsHorizontalScrollIndicator={true}
+									scrollIndicatorInsets={{
+										top: 10,
+										left: 10,
+										bottom: 10,
+										right: 10,
+									}}
+									indicatorStyle='white'
+								/>
+							)}
+						</View>
 					</View>
 				</Modal>
 			)}
