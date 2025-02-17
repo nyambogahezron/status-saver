@@ -21,8 +21,7 @@ import BackButton from '../navigation/BackButton';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import { Audio } from 'expo-av';
-import { saveStatusToGallery } from '@/utils/media-access';
-import { createFolderAndCopyFile } from '@/utils/save-files';
+import { SaveFile } from '@/utils/save-files';
 
 const { height, width } = Dimensions.get('window');
 
@@ -129,7 +128,7 @@ export default function StatusItem({
 
 	const handleOnStatusSave = async () => {
 		if (selectedIndex !== null) {
-			await createFolderAndCopyFile(status[selectedIndex].uri);
+			await SaveFile(status[selectedIndex].uri);
 		}
 	};
 
