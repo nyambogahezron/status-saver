@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
 	View,
 	StyleSheet,
@@ -8,7 +8,6 @@ import {
 	Share,
 	Text,
 	Pressable,
-	Alert,
 	FlatList,
 } from 'react-native';
 import StatusListComponent from './StatusListComponent';
@@ -20,7 +19,6 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BackButton from '../navigation/BackButton';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
-import { Audio } from 'expo-av';
 import { SaveFile } from '@/utils/save-files';
 
 const { height, width } = Dimensions.get('window');
@@ -64,61 +62,13 @@ const VideoItem = ({ url }: { url: string }) => {
 	);
 };
 
-const AudioItem = ({ url }: { url: string }) => {
-	const [sound, setSound] = useState<Audio.Sound | null>(null);
-	const [isPlaying, setIsPlaying] = useState(false);
-
-	const playSound = async () => {
-		const { sound } = await Audio.Sound.createAsync({ uri: url });
-		setSound(sound);
-		await sound.playAsync();
-		setIsPlaying(true);
-	};
-
-	const pauseSound = async () => {
-		if (sound) {
-			await sound.pauseAsync();
-			setIsPlaying(false);
-		}
-	};
-
-	useEffect(() => {
-		return sound
-			? () => {
-					sound.unloadAsync();
-			  }
-			: undefined;
-	}, [sound]);
-
-	return (
-		<View style={styles.audioContainer}>
-			<Pressable
-				onPress={() => {
-					if (isPlaying) {
-						pauseSound();
-					} else {
-						playSound();
-					}
-				}}
-			>
-				<Ionicons
-					name={isPlaying ? 'pause-circle' : 'play-circle'}
-					size={45}
-					color='white'
-					style={styles.playIcon}
-				/>
-			</Pressable>
-		</View>
-	);
-};
-
 export default function StatusItem({
 	status,
 	statusType,
 }: StatusItemProps): JSX.Element {
-	const [modalVisible, setModalVisible] = useState(false);
-	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-	const [currentIndex, setCurrentIndex] = useState<number>(0);
+	const [modalVisible, setModalVisible] = React.useState(false);
+	const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+	const [currentIndex, setCurrentIndex] = React.useState<number>(0);
 
 	const handleImagePress = (index: number) => {
 		setSelectedIndex(index);
@@ -128,7 +78,7 @@ export default function StatusItem({
 
 	const handleOnStatusSave = async () => {
 		if (selectedIndex !== null) {
-			await SaveFile(status[selectedIndex].uri);
+			await SaveFile(status[selectedIndex].url);
 		}
 	};
 
@@ -157,7 +107,6 @@ export default function StatusItem({
 		statusType: 'image' | 'video' | 'audio'
 	) => {
 		const isVideo = statusType === 'video';
-		const isAudio = statusType === 'audio';
 		return (
 			<View key={index} style={styles.statusItem}>
 				<TouchableOpacity
@@ -165,24 +114,14 @@ export default function StatusItem({
 					onPress={() => handleImagePress(index)}
 					style={styles.statusItem}
 				>
-					{isAudio ? (
-						<View style={styles.statusImage}>
-							<Ionicons
-								name='musical-notes'
-								size={45}
-								color='white'
-								style={styles.playIcon}
-							/>
-						</View>
-					) : (
-						<Image
-							style={styles.statusImage}
-							source={status.uri}
-							placeholder={{ blurHash }}
-							contentFit='cover'
-							transition={1000}
-						/>
-					)}
+					<Image
+						style={styles.statusImage}
+						source={status.url}
+						placeholder={{ blurHash }}
+						contentFit='cover'
+						transition={1000}
+					/>
+
 					{isVideo && (
 						<Ionicons
 							name='play-circle'
@@ -248,12 +187,10 @@ export default function StatusItem({
 									renderItem={({ item }) =>
 										item.type === 'video' ? (
 											<VideoItem url={item.url} />
-										) : item.type === 'audio' ? (
-											<AudioItem url={item.url} />
 										) : (
 											<Image
 												style={styles.fullScreenImage}
-												source={item.uri}
+												source={item.url}
 												contentFit='contain'
 												transition={1000}
 											/>

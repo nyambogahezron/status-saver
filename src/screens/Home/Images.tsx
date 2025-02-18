@@ -2,14 +2,15 @@ import React from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import StatusItem from '@/components/ui/StatusItem';
 import { Colors } from '@/constants/Colors';
-import { useStatusDataStore } from '@/store';
+import { useGlobalContext } from '@/content/GlobalContent';
 
 export default function Images() {
-	const statusData = useStatusDataStore((state) => state.statusData);
+	const { imageStatus } = useGlobalContext();
+	// console.log('imageStatus from global', imageStatus);
 
 	return (
 		<ScrollView style={styles.container}>
-			<StatusItem status={statusData.photoFiles} statusType='image' />
+			<StatusItem status={imageStatus} statusType='image' />
 		</ScrollView>
 	);
 }

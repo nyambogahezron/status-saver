@@ -6,6 +6,7 @@ import Screens from '@/screens';
 import CustomHeader from '@/components/ui/CustomHeader';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'react-native';
+import GlobalProvider from '@/content/GlobalContent';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,9 +49,11 @@ function RootStack() {
 
 export default function App() {
 	return (
-		<NavigationContainer>
-			<StatusBar backgroundColor='#00a884' barStyle='light-content' />
-			<RootStack />
-		</NavigationContainer>
+		<GlobalProvider>
+			<NavigationContainer>
+				<StatusBar backgroundColor='#00a884' barStyle='light-content' />
+				<RootStack />
+			</NavigationContainer>
+		</GlobalProvider>
 	);
 }

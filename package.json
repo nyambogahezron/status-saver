@@ -9,11 +9,11 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-navigation/elements": "^2.2.5",
     "@react-navigation/material-top-tabs": "^7.1.0",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/native-stack": "^7.2.0",
-    "@shopify/flash-list": "1.7.3",
     "expo": "~52.0.35",
     "expo-av": "~15.0.2",
     "expo-blur": "~14.0.3",
@@ -22,28 +22,19 @@
     "expo-file-system": "~18.0.10",
     "expo-font": "~13.0.2",
     "expo-image": "~2.0.5",
-    "expo-image-picker": "~16.0.6",
     "expo-linking": "~7.0.5",
     "expo-media-library": "~17.0.6",
     "expo-splash-screen": "~0.29.22",
     "expo-video": "~2.0.5",
     "react": "18.3.1",
     "react-native": "0.76.7",
-    "react-native-audio-recorder-player": "^3.6.12",
-    "react-native-document-picker": "^9.3.1",
-    "react-native-fs": "^2.20.0",
     "react-native-image-picker": "^7.2.3",
-    "react-native-image-viewing": "^0.2.2",
     "react-native-pager-view": "6.5.1",
-    "react-native-pdf": "^6.7.6",
     "react-native-permissions": "^5.2.2",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
     "react-native-video": "^6.9.0",
-    "react-native-video-controls": "^2.8.1",
-    "rn-fetch-blob": "^0.12.0",
-    "zustand": "^5.0.2",
-    "@react-native-async-storage/async-storage": "1.23.1"
+    "expo-system-ui": "~4.0.8"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
@@ -55,13 +46,7 @@
   "expo": {
     "doctor": {
       "reactNativeDirectoryCheck": {
-        "exclude": [
-          "react-native-audio-recorder-player",
-          "react-native-fs",
-          "react-native-image-viewing",
-          "react-native-video-controls",
-          "rn-fetch-blob"
-        ]
+        "exclude": []
       }
     }
   }

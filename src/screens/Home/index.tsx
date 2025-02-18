@@ -3,7 +3,6 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import Saved from './Saved';
 import Images from './Images';
 import Videos from './Videos';
-import Audio from './Audio';
 import { Colors } from '@/constants/Colors';
 
 const Tab = createMaterialTopTabNavigator();
@@ -28,7 +27,6 @@ export default function StatusScreen() {
 		>
 			<Tab.Screen name='Images' component={Images} />
 			<Tab.Screen name='Videos' component={Videos} />
-			<Tab.Screen name='Audios' component={Audio} />
 			<Tab.Screen name='Saved' component={Saved} />
 		</Tab.Navigator>
 	);

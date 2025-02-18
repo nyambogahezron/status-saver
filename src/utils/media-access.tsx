@@ -1,8 +1,7 @@
 import { StorageAccessFramework } from 'expo-file-system';
 import DocumentPicker from 'react-native-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as MediaLibrary from 'expo-media-library';
-import { Alert } from 'react-native';
+import { LoadSavedFiles } from './save-files';
 
 /**
  * @description Selects the WhatsApp status folder
@@ -17,7 +16,7 @@ export async function selectWhatsAppStatusFolder() {
 			const statusFiles = files
 				.map((fileUri) => ({
 					uri: fileUri,
-					name: fileUri.split('/').pop() || '',
+					name: fileUri.split('%').pop() || '',
 				}))
 				.filter((file) => file.name);
 
@@ -31,11 +30,31 @@ export async function selectWhatsAppStatusFolder() {
 				file.name.match(/\.(mp3|wav|m4a)$/i)
 			);
 
+			const savedStatusData = await LoadSavedFiles();
+
+			// Filter out the saved files
+			const photoFilesFiltered = photoFiles.filter(
+				(file) =>
+					Array.isArray(savedStatusData) ||
+					!savedStatusData.photoFiles.some(
+						(savedFile) => savedFile.name === file.name
+					)
+			);
+
+			const videoFilesFiltered = videoFiles.filter(
+				(file) =>
+					Array.isArray(savedStatusData) ||
+					!savedStatusData.videoFiles.some(
+						(savedFile) => savedFile.uri === file.uri
+					)
+			);
+
 			const statusData = {
-				photoFiles,
-				videoFiles,
-				audioFiles,
+				photoFiles: photoFilesFiltered,
+				videoFiles: videoFilesFiltered,
 			};
+
+			console.log('statusData', statusData);
 
 			return statusData;
 		}
@@ -60,7 +79,7 @@ export async function LoadStatusFiles() {
 			const statusFiles = files
 				.map((fileUri) => ({
 					uri: fileUri,
-					name: fileUri.split('/').pop() || '',
+					name: fileUri.split('%').pop() || '',
 				}))
 				.filter((file) => file.name);
 
@@ -70,14 +89,10 @@ export async function LoadStatusFiles() {
 			const videoFiles = statusFiles.filter((file) =>
 				file.name.match(/\.(mp4|mkv|avi)$/i)
 			);
-			const audioFiles = statusFiles.filter((file) =>
-				file.name.match(/\.(mp3|wav|m4a)$/i)
-			);
 
 			const statusData = {
 				photoFiles,
 				videoFiles,
-				audioFiles,
 			};
 
 			return statusData;
@@ -97,7 +112,7 @@ export async function LoadStatusFiles() {
 					const statusFiles = files
 						.map((fileUri) => ({
 							uri: fileUri,
-							name: fileUri.split('/').pop() || '',
+							name: fileUri.split('%').pop() || '',
 						}))
 						.filter((file) => file.name);
 
@@ -107,14 +122,10 @@ export async function LoadStatusFiles() {
 					const videoFiles = statusFiles.filter((file) =>
 						file.name.match(/\.(mp4|mkv|avi)$/i)
 					);
-					const audioFiles = statusFiles.filter((file) =>
-						file.name.match(/\.(mp3|wav|m4a)$/i)
-					);
 
 					const statusData = {
 						photoFiles,
 						videoFiles,
-						audioFiles,
 					};
 
 					return statusData;
@@ -147,40 +158,5 @@ export async function saveStatusFolder(uri: string) {
 		await AsyncStorage.setItem('statusFolderUri', uri);
 	} catch (error) {
 		console.error('Error saving folder:', error);
-	}
-}
-
-/**
- * @description Save statues to the gallery
- * @param uri - File URI
- * @returns void
- */
-export async function saveStatusToGallery(uri: string) {
-	try {
-		if (uri) {
-			const { status } = await MediaLibrary.requestPermissionsAsync();
-
-			console.log('Status:', status);
-			console.log('URI:', uri);
-
-			if (status === 'granted') {
-				try {
-					const asset = await MediaLibrary.createAssetAsync(uri);
-					await MediaLibrary.createAlbumAsync('WhatsApp Statuses', asset);
-					console.log('File saved successfully:', uri);
-					Alert.alert('Status saved to gallery');
-				} catch (error) {
-					console.error('Error saving the file:', error);
-				}
-			} else {
-				console.error(
-					'Error: Permission to access media library is not granted'
-				);
-			}
-		} else {
-			console.error('Error: URI is null or undefined');
-		}
-	} catch (error) {
-		console.error('Error saving the file:', error);
 	}
 }

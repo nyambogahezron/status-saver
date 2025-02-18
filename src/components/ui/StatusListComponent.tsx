@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, Flatlist } from 'react-native';
 import React from 'react';
-import { FlashList } from '@shopify/flash-list';
+
 import { Colors } from '@/constants/Colors';
 
 type StatusCardProps = {
@@ -20,7 +20,7 @@ export default function StatusListComponent({
 }: StatusCardProps) {
 	return (
 		<View style={styles.container}>
-			<FlashList
+			<FileList
 				data={data}
 				renderItem={({ item, index }) => renderItem(item, index, statusType)}
 				estimatedItemSize={100}

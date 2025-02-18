@@ -2,14 +2,14 @@ import React from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import StatusItem from '@/components/ui/StatusItem';
 import { Colors } from '@/constants/Colors';
-import { useStatusDataStore } from '@/store';
+import { useGlobalContext } from '@/content/GlobalContent';
 
 export default function Videos() {
-	const statusData = useStatusDataStore((state) => state.statusData);
+	const { videoStatus } = useGlobalContext();
 
 	return (
 		<ScrollView style={styles.container}>
-			<StatusItem status={statusData.videoFiles} statusType='video' />
+			<StatusItem status={videoStatus} statusType='video' />
 		</ScrollView>
 	);
 }
