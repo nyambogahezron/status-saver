@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import StatusItem from '@/components/ui/StatusItem';
 import { Colors } from '@/constants/Colors';
 import { useGlobalContext } from '@/content/GlobalContent';
@@ -8,9 +8,9 @@ export default function Videos() {
 	const { videoStatus } = useGlobalContext();
 
 	return (
-		<ScrollView style={styles.container}>
+		<View style={styles.container}>
 			<StatusItem status={videoStatus} statusType='video' />
-		</ScrollView>
+		</View>
 	);
 }
 

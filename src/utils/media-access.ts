@@ -1,7 +1,8 @@
 import { StorageAccessFramework } from 'expo-file-system';
-import DocumentPicker from 'react-native-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LoadSavedFiles } from './save-files';
+
+const STORAGE_FOLDER =
+	'content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia%2F.Statuses';
 
 /**
  * @description Selects the WhatsApp status folder
@@ -26,35 +27,11 @@ export async function selectWhatsAppStatusFolder() {
 			const videoFiles = statusFiles.filter((file) =>
 				file.name.match(/\.(mp4|mkv|avi)$/i)
 			);
-			const audioFiles = statusFiles.filter((file) =>
-				file.name.match(/\.(mp3|wav|m4a)$/i)
-			);
-
-			const savedStatusData = await LoadSavedFiles();
-
-			// Filter out the saved files
-			const photoFilesFiltered = photoFiles.filter(
-				(file) =>
-					Array.isArray(savedStatusData) ||
-					!savedStatusData.photoFiles.some(
-						(savedFile) => savedFile.name === file.name
-					)
-			);
-
-			const videoFilesFiltered = videoFiles.filter(
-				(file) =>
-					Array.isArray(savedStatusData) ||
-					!savedStatusData.videoFiles.some(
-						(savedFile) => savedFile.uri === file.uri
-					)
-			);
 
 			const statusData = {
-				photoFiles: photoFilesFiltered,
-				videoFiles: videoFilesFiltered,
+				photoFiles,
+				videoFiles,
 			};
-
-			console.log('statusData', statusData);
 
 			return statusData;
 		}
@@ -73,6 +50,7 @@ export async function selectWhatsAppStatusFolder() {
 export async function LoadStatusFiles() {
 	try {
 		const storedUri = await AsyncStorage.getItem('statusFolderUri');
+
 		if (storedUri) {
 			const files = await StorageAccessFramework.readDirectoryAsync(storedUri);
 
@@ -101,7 +79,9 @@ export async function LoadStatusFiles() {
 		if (!storedUri) {
 			try {
 				const permissions =
-					await StorageAccessFramework.requestDirectoryPermissionsAsync();
+					await StorageAccessFramework.requestDirectoryPermissionsAsync(
+						STORAGE_FOLDER
+					);
 				if (permissions.granted) {
 					const uri = permissions.directoryUri;
 
@@ -133,7 +113,7 @@ export async function LoadStatusFiles() {
 					console.log('User cancelled folder selection');
 				}
 			} catch (error) {
-				if (DocumentPicker.isCancel(error)) {
+				if ((error as any).code === 'cancel') {
 					console.log('User cancelled folder selection');
 				} else {
 					console.error('Error selecting folder:', error);

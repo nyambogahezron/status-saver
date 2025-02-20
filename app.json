@@ -1,76 +1,66 @@
 {
-	"expo": {
-		"name": "Status Saver",
-		"slug": "status-saver",
-		"version": "1.0.0",
-		"orientation": "portrait",
-		"icon": "./assets/images/icon.png",
-		"userInterfaceStyle": "automatic",
-		"newArchEnabled": true,
-		"splash": {
-			"image": "./assets/images/splash-icon.png",
-			"resizeMode": "contain",
-			"backgroundColor": "#00a884"
-		},
-		"ios": {
-			"supportsTablet": true,
-			"bundleIdentifier": "com.hezron.statussaver"
-		},
-		"android": {
-			"adaptiveIcon": {
-				"foregroundImage": "./assets/images/adaptive-icon.png",
-				"backgroundColor": "#00a884"
-			},
-			"package": "com.hezron.statussaver",
-			"permissions": [
-				"android.permission.READ_EXTERNAL_STORAGE",
-				"android.permission.WRITE_EXTERNAL_STORAGE",
-				"android.permission.INTERNET",
-				"android.permission.ACCESS_MEDIA_LOCATION",
-				"android.permission.RECORD_AUDIO"
-			]
-		},
-		"plugins": [
-			[
-				"expo-video",
-				{
-					"supportsBackgroundPlayback": true,
-					"supportsPictureInPicture": true
-				}
-			],
-			[
-				"expo-media-library",
-				{
-					"photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
-					"savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
-					"isAccessMediaLocationEnabled": true
-				}
-			],
-
-			[
-				"expo-splash-screen",
-				{
-					"backgroundColor": "#00a884",
-					"image": "./assets/images/splash-icon.png",
-					"dark": {
-						"image": "./assets/images/splash-icon.png",
-						"backgroundColor": "#00a884"
-					},
-					"imageWidth": 200
-				}
-			],
-			[
-				"expo-document-picker",
-				{
-					"iCloudContainerEnvironment": "Production"
-				}
-			],
-			"expo-font"
-		],
-		"extra": {
-			"eas": {
-				"projectId": "b1dcd852-2804-4fb3-aeee-3483901e8b0f"
-			}
-		}
-	}
+  "expo": {
+    "name": "Status Saver",
+    "slug": "status-saver",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#00a884"
+      },
+      "package": "com.hezron.statussaver",
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": true,
+          "supportsPictureInPicture": true
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
+          "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
+          "isAccessMediaLocationEnabled": true
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#00a884",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain"
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b1dcd852-2804-4fb3-aeee-3483901e8b0f"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.hezron.statussaver"
+    }
+  }
 }

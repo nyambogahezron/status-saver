@@ -23,6 +23,7 @@ yarn-error.*
 # local env files
 .env*.local
 ios/
+android/
 
 
 # typescript

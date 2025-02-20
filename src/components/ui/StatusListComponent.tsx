@@ -1,7 +1,13 @@
-import { StyleSheet, Text, View, Flatlist } from 'react-native';
 import React from 'react';
-
+import {
+	StyleSheet,
+	Text,
+	View,
+	FlatList,
+	ActivityIndicator,
+} from 'react-native';
 import { Colors } from '@/constants/Colors';
+import { useGlobalContext } from '@/content/GlobalContent';
 
 type StatusCardProps = {
 	data: any[];
@@ -18,36 +24,57 @@ export default function StatusListComponent({
 	renderItem,
 	statusType,
 }: StatusCardProps) {
+	const { fetchSavedStatus, fetchStatus } = useGlobalContext();
+	const [isLoading, setIsLoading] = React.useState(false);
+
+	async function onRefresh() {
+		setIsLoading(true);
+		if (statusType === 'image' || statusType === 'video') {
+			fetchStatus?.();
+		} else {
+			fetchSavedStatus?.();
+		}
+		setIsLoading(false);
+	}
+
 	return (
-		<View style={styles.container}>
-			<FileList
-				data={data}
-				renderItem={({ item, index }) => renderItem(item, index, statusType)}
-				estimatedItemSize={100}
-				numColumns={3}
-				ListEmptyComponent={
-					<View style={styles.emptyContainer}>
-						<Text style={styles.emptyText}>
-							No {statusType === 'image' ? 'images' : statusType} found!
-						</Text>
-					</View>
-				}
-			/>
+		<View>
+			{isLoading ? (
+				<View style={styles.loader}>
+					<ActivityIndicator
+						size={50}
+						color={Colors.greenLight2}
+						style={styles.loadingIndicator}
+					/>
+				</View>
+			) : (
+				<FlatList
+					onRefresh={onRefresh}
+					refreshing={false}
+					contentContainerStyle={{
+						gap: 2,
+						marginTop: 2,
+						backgroundColor: Colors.greenLight,
+						alignContent: 'center',
+						justifyContent: 'flex-start',
+					}}
+					data={data}
+					renderItem={({ item, index }) => renderItem(item, index, statusType)}
+					numColumns={3}
+					ListEmptyComponent={
+						<View style={styles.emptyContainer}>
+							<Text style={styles.emptyText}>
+								No {statusType === 'image' ? 'images' : statusType} found!
+							</Text>
+						</View>
+					}
+				/>
+			)}
 		</View>
 	);
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		width: '100%',
-		padding: 2,
-		flexDirection: 'row',
-		flexWrap: 'wrap',
-		alignContent: 'center',
-		justifyContent: 'flex-start',
-		gap: 2,
-	},
 	emptyContainer: {
 		flex: 1,
 		justifyContent: 'center',
@@ -59,5 +86,16 @@ const styles = StyleSheet.create({
 		fontSize: 20,
 		color: Colors.black3,
 		fontFamily: 'Rb-Bold',
+	},
+	loader: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginTop: '50%',
+	},
+	loadingIndicator: {
+		flex: 1,
+		justifyContent: 'center',
+		alignItems: 'center',
 	},
 });

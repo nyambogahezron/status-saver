@@ -10,6 +10,11 @@ import GlobalProvider from '@/content/GlobalContent';
 
 SplashScreen.preventAutoHideAsync();
 
+SplashScreen.setOptions({
+	duration: 400,
+	fade: true,
+});
+
 const Stack = createNativeStackNavigator();
 
 function RootStack() {

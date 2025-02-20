@@ -27,6 +27,8 @@ interface GlobalContextProps {
 	setIsError: (status: boolean) => void;
 	isPermissionGranted: boolean;
 	setIsPermissionGranted: (status: boolean) => void;
+	fetchStatus?: () => void;
+	fetchSavedStatus?: () => void;
 }
 
 const GlobalContext = createContext<GlobalContextProps>(
@@ -49,18 +51,9 @@ export default function GlobalProvider({
 	const fetchSavedStatus = async () => {
 		try {
 			const savedStatusData = await LoadSavedFiles();
-			if (
-				savedStatusData &&
-				'photoFiles' in savedStatusData &&
-				'videoFiles' in savedStatusData
-			) {
-				const { photoFiles, videoFiles } = savedStatusData as StatusData;
-				setSavedImageStatus(
-					photoFiles.map((file) => ({ url: file.uri, name: file.name }))
-				);
-				setSavedVideoStatus(
-					videoFiles.map((file) => ({ url: file.uri, name: file.name }))
-				);
+			if (savedStatusData) {
+				setSavedImageStatus(savedStatusData?.photoFiles);
+				setSavedVideoStatus(savedStatusData?.videoFiles);
 			}
 		} catch (error) {
 			console.error('Error loading saved status:', error);
@@ -68,31 +61,13 @@ export default function GlobalProvider({
 		}
 	};
 
-	const fetchStatus = async () => {
+	async function fetchStatus() {
 		try {
 			setIsLoading(true);
-			const statusData = LoadStatusFiles();
-			if (
-				statusData &&
-				'photoFiles' in statusData &&
-				'videoFiles' in statusData
-			) {
-				const { photoFiles, videoFiles } = statusData as StatusData;
-
-				const newImageStatus = photoFiles.map((file) => ({
-					url: file.uri,
-					name: file.name,
-				}));
-
-				const newVideoStatus = videoFiles.map((file) => ({
-					url: file.uri,
-					name: file.name,
-				}));
-
-				setImageStatus(newImageStatus);
-				setVideoStatus(newVideoStatus);
-				console.log('newImageStatus', newImageStatus);
-				console.log('newVideoStatus', newVideoStatus);
+			const statusData = await LoadStatusFiles();
+			if (statusData) {
+				setImageStatus(statusData?.photoFiles);
+				setVideoStatus(statusData?.videoFiles);
 			}
 		} catch (error) {
 			console.error('Error loading status files:', error);
@@ -100,17 +75,13 @@ export default function GlobalProvider({
 		} finally {
 			setIsLoading(false);
 		}
-	};
+	}
 
 	useEffect(() => {
 		fetchSavedStatus();
 
 		fetchStatus();
 	}, []);
-
-	useEffect(() => {
-		fetchStatus();
-	}, [savedImageStatus, savedVideoStatus]);
 
 	return (
 		<GlobalContext.Provider
@@ -129,6 +100,8 @@ export default function GlobalProvider({
 				setIsError,
 				isPermissionGranted,
 				setIsPermissionGranted,
+				fetchStatus,
+				fetchSavedStatus,
 			}}
 		>
 			{children}

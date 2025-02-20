@@ -28,7 +28,7 @@ type StatusItemProps = {
 	statusType: 'image' | 'video' | 'audio';
 };
 
-const VideoItem = ({ url }: { url: string }) => {
+const VideoItem = React.memo(({ url }: { url: string }) => {
 	const player = useVideoPlayer(url, (player) => {
 		player.loop = true;
 		player.play();
@@ -60,7 +60,7 @@ const VideoItem = ({ url }: { url: string }) => {
 			</View>
 		</View>
 	);
-};
+});
 
 export default function StatusItem({
 	status,
@@ -70,6 +70,10 @@ export default function StatusItem({
 	const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
 	const [currentIndex, setCurrentIndex] = React.useState<number>(0);
 
+	React.useEffect(() => {
+		setSelectedIndex(currentIndex);
+	}, [currentIndex]);
+
 	const handleImagePress = (index: number) => {
 		setSelectedIndex(index);
 		setCurrentIndex(index);
@@ -78,7 +82,7 @@ export default function StatusItem({
 
 	const handleOnStatusSave = async () => {
 		if (selectedIndex !== null) {
-			await SaveFile(status[selectedIndex].url);
+			await SaveFile(status[selectedIndex].uri);
 		}
 	};
 
@@ -87,7 +91,7 @@ export default function StatusItem({
 			try {
 				await Share.share({
 					message: 'Check out this status!',
-					url: status[selectedIndex].url,
+					url: status[selectedIndex].uri,
 				});
 			} catch (error) {
 				console.error('Error sharing the image:', error);
@@ -116,7 +120,7 @@ export default function StatusItem({
 				>
 					<Image
 						style={styles.statusImage}
-						source={status.url}
+						source={status.uri}
 						placeholder={{ blurHash }}
 						contentFit='cover'
 						transition={1000}
@@ -136,7 +140,7 @@ export default function StatusItem({
 	};
 
 	return (
-		<>
+		<View>
 			<StatusListComponent
 				data={status}
 				renderItem={renderStatusItem}
@@ -186,11 +190,11 @@ export default function StatusItem({
 									viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
 									renderItem={({ item }) =>
 										item.type === 'video' ? (
-											<VideoItem url={item.url} />
+											<VideoItem url={item.uri} />
 										) : (
 											<Image
 												style={styles.fullScreenImage}
-												source={item.url}
+												source={item.uri}
 												contentFit='contain'
 												transition={1000}
 											/>
@@ -210,7 +214,7 @@ export default function StatusItem({
 					</View>
 				</Modal>
 			)}
-		</>
+		</View>
 	);
 }
 
