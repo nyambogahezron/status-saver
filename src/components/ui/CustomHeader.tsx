@@ -2,8 +2,11 @@ import { Colors } from '@/constants/Colors';
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '@/screens';
 
 export default function CustomHeader() {
+	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const [dropdownVisible, setDropdownVisible] = useState(false);
 
 	const toggleDropdown = () => {
@@ -12,6 +15,14 @@ export default function CustomHeader() {
 
 	return (
 		<View style={styles.header}>
+			<TouchableOpacity onPress={() => navigation.goBack()}>
+				<Entypo
+					name='chevron-left'
+					size={20}
+					color='white'
+					style={styles.icon}
+				/>
+			</TouchableOpacity>
 			<Text style={styles.headerText}>Status Saver</Text>
 			<TouchableOpacity onPress={toggleDropdown}>
 				<Entypo
@@ -23,11 +34,17 @@ export default function CustomHeader() {
 			</TouchableOpacity>
 			{dropdownVisible && (
 				<View style={styles.dropdownMenu}>
-					<TouchableOpacity onPress={toggleDropdown} style={styles.menuItem}>
-						<Text style={styles.menuText}>Settings</Text>
-					</TouchableOpacity>
-					<TouchableOpacity onPress={toggleDropdown} style={styles.menuItem}>
+					<TouchableOpacity
+						onPress={() => navigation.navigate('Help')}
+						style={styles.menuItem}
+					>
 						<Text style={styles.menuText}>Help</Text>
+					</TouchableOpacity>
+					<TouchableOpacity
+						onPress={() => navigation.navigate('Settings')}
+						style={styles.menuItem}
+					>
+						<Text style={styles.menuText}>Settings</Text>
 					</TouchableOpacity>
 				</View>
 			)}

@@ -37,7 +37,14 @@ function RootStack() {
 	}
 
 	return (
-		<Stack.Navigator initialRouteName='Home'>
+		<Stack.Navigator initialRouteName='Welcome'>
+			<Stack.Screen
+				name='Welcome'
+				component={Screens.Welcome}
+				options={{
+					headerShown: false,
+				}}
+			/>
 			<Stack.Screen
 				name='Home'
 				component={Screens.HomeScreen}
@@ -47,7 +54,25 @@ function RootStack() {
 					header: () => <CustomHeader />,
 				}}
 			/>
-			<Stack.Screen name='Settings' component={Screens.SettingsScreen} />
+			<Stack.Screen name='Settings' component={Screens.Settings} />
+			<Stack.Screen
+				name='Help'
+				component={Screens.Help}
+				options={{
+					headerShown: true,
+					title: 'Help',
+					header: () => <CustomHeader />,
+				}}
+			/>
+			<Stack.Screen
+				name='UserAgreement'
+				component={Screens.UserAgreement}
+				options={{
+					headerShown: true,
+					title: 'User Agreement',
+					header: () => <CustomHeader />,
+				}}
+			/>
 		</Stack.Navigator>
 	);
 }

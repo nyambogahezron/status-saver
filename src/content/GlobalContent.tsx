@@ -1,5 +1,6 @@
 import { LoadStatusFiles } from '@/utils/media-access';
-import { LoadSavedFiles } from '@/utils/save-files';
+import { LoadSavedFiles, SaveFile } from '@/utils/save-files';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 interface ImageStatus {
@@ -29,6 +30,7 @@ interface GlobalContextProps {
 	setIsPermissionGranted: (status: boolean) => void;
 	fetchStatus?: () => void;
 	fetchSavedStatus?: () => void;
+	SaveFileToStorage: (URI: string) => void;
 }
 
 const GlobalContext = createContext<GlobalContextProps>(
@@ -47,6 +49,18 @@ export default function GlobalProvider({
 	const [isLoading, setIsLoading] = useState(true);
 	const [isError, setIsError] = useState(false);
 	const [isPermissionGranted, setIsPermissionGranted] = useState(false);
+
+	async function checkForPermissions() {
+		const isStatusFolder = await AsyncStorage.getItem('WHATSAPP_STATUS_STORE');
+
+		const statusFolderUri = await AsyncStorage.getItem('statusFolderUri');
+
+		if (isStatusFolder && statusFolderUri) {
+			setIsPermissionGranted(true);
+		}
+	}
+
+	checkForPermissions();
 
 	const fetchSavedStatus = async () => {
 		try {
@@ -77,7 +91,22 @@ export default function GlobalProvider({
 		}
 	}
 
+	async function SaveFileToStorage(URI: string) {
+		if (!URI) {
+			console.error('Error: No file URI found');
+			return;
+		}
+
+		const save = await SaveFile(URI);
+
+		if (save) {
+			fetchSavedStatus();
+		}
+	}
+
 	useEffect(() => {
+		checkForPermissions();
+
 		fetchSavedStatus();
 
 		fetchStatus();
@@ -102,6 +131,7 @@ export default function GlobalProvider({
 				setIsPermissionGranted,
 				fetchStatus,
 				fetchSavedStatus,
+				SaveFileToStorage,
 			}}
 		>
 			{children}

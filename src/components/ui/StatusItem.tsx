@@ -19,7 +19,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BackButton from '../navigation/BackButton';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
-import { SaveFile } from '@/utils/save-files';
+import { useGlobalContext } from '@/content/GlobalContent';
 
 const { height, width } = Dimensions.get('window');
 
@@ -70,6 +70,8 @@ export default function StatusItem({
 	const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
 	const [currentIndex, setCurrentIndex] = React.useState<number>(0);
 
+	const { SaveFileToStorage } = useGlobalContext();
+
 	React.useEffect(() => {
 		setSelectedIndex(currentIndex);
 	}, [currentIndex]);
@@ -82,7 +84,7 @@ export default function StatusItem({
 
 	const handleOnStatusSave = async () => {
 		if (selectedIndex !== null) {
-			await SaveFile(status[selectedIndex].uri);
+			SaveFileToStorage(status[selectedIndex].uri);
 		}
 	};
 
@@ -161,7 +163,7 @@ export default function StatusItem({
 							<BackButton onPress={() => setModalVisible(false)} />
 							<View style={styles.imageCounter}>
 								<Text style={styles.counterText}>
-									{currentIndex + 1} / {status.length}
+									{currentIndex && currentIndex + 1} / {status.length}
 								</Text>
 							</View>
 							<TouchableOpacity onPress={handleOnStatusSave}>
@@ -225,7 +227,8 @@ const styles = StyleSheet.create({
 		justifyContent: 'center',
 		width: width * 0.325,
 		height: height * 0.15,
-		marginBottom: 4,
+		marginBottom: 2,
+		marginRight: 2,
 	},
 	statusImage: {
 		flex: 1,

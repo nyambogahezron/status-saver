@@ -10,33 +10,19 @@ const STORAGE_FOLDER =
  */
 export async function selectWhatsAppStatusFolder() {
 	try {
-		const storedUri = await AsyncStorage.getItem('statusFolderUri');
-		if (storedUri) {
-			const files = await StorageAccessFramework.readDirectoryAsync(storedUri);
-
-			const statusFiles = files
-				.map((fileUri) => ({
-					uri: fileUri,
-					name: fileUri.split('%').pop() || '',
-				}))
-				.filter((file) => file.name);
-
-			const photoFiles = statusFiles.filter((file) =>
-				file.name.match(/\.(jpg|jpeg|png)$/i)
-			);
-			const videoFiles = statusFiles.filter((file) =>
-				file.name.match(/\.(mp4|mkv|avi)$/i)
+		const permissions =
+			await StorageAccessFramework.requestDirectoryPermissionsAsync(
+				STORAGE_FOLDER
 			);
 
-			const statusData = {
-				photoFiles,
-				videoFiles,
-			};
-
-			return statusData;
+		if (permissions.granted) {
+			const uri = permissions.directoryUri;
+			await saveStatusFolder(uri);
+			return true;
+		} else {
+			console.log('User cancelled folder selection');
+			return false;
 		}
-
-		return null;
 	} catch (error) {
 		console.error('Error loading stored folder:', error);
 	}

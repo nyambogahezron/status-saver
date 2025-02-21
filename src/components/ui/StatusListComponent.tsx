@@ -5,9 +5,12 @@ import {
 	View,
 	FlatList,
 	ActivityIndicator,
+	Dimensions,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { useGlobalContext } from '@/content/GlobalContent';
+
+const width = Dimensions.get('window').width;
 
 type StatusCardProps = {
 	data: any[];
@@ -49,10 +52,12 @@ export default function StatusListComponent({
 				</View>
 			) : (
 				<FlatList
+					style={{
+						width: width,
+					}}
 					onRefresh={onRefresh}
 					refreshing={false}
 					contentContainerStyle={{
-						gap: 2,
 						marginTop: 2,
 						backgroundColor: Colors.greenLight,
 						alignContent: 'center',

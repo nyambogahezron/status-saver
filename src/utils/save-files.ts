@@ -9,7 +9,9 @@ const STORAGE_FOLDER =
 export async function SelectSavedFolder() {
 	try {
 		const permissions =
-			await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+			await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
+				STORAGE_FOLDER
+			);
 		if (!permissions.granted) {
 			console.error('Permission to access storage is not granted');
 			Toast('Permission to access storage is not granted');
@@ -20,6 +22,7 @@ export async function SelectSavedFolder() {
 		await AsyncStorage.setItem(STORAGE_KEY, parentUri);
 
 		Toast('Folder selected successfully!');
+		return true;
 	} catch (error) {
 		console.error('SelectFolder Error:', error);
 	}
@@ -137,6 +140,7 @@ export async function SaveFile(URI: string) {
 		});
 
 		Toast('File saved successfully!');
+		return true;
 	} catch (error) {
 		console.error('SaveFile Error:', error);
 	}

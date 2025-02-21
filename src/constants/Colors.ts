@@ -5,11 +5,12 @@ const black = '#000';
 const black1 = '#222';
 const black2 = '#333';
 const black3 = '#555';
-const gray = '#f2f2f2f2';
+const gray = '#f2f2f2';
 const gray1 = '#ddd';
 const greenLight = '#e8f5e9';
 const greenLight2 = '#0553';
 const red = '#e53935';
+const blue = '#2196f3';
 
 export const Colors = {
 	primaryColor,
@@ -24,4 +25,5 @@ export const Colors = {
 	black3,
 	gray1,
 	red,
+	blue,
 };

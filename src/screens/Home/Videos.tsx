@@ -17,9 +17,7 @@ export default function Videos() {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		height: '100%',
-		width: '100%',
-		paddingBottom: 100,
+		paddingHorizontal: 2,
 		marginTop: 2,
 		backgroundColor: Colors.greenLight,
 	},

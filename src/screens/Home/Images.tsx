@@ -6,7 +6,6 @@ import { useGlobalContext } from '@/content/GlobalContent';
 
 export default function Images() {
 	const { imageStatus } = useGlobalContext();
-	// console.log('imageStatus from global', imageStatus);
 
 	return (
 		<View style={styles.container}>
@@ -17,7 +16,8 @@ export default function Images() {
 
 const styles = StyleSheet.create({
 	container: {
-		// paddingBottom: 100,
+		flex: 1,
+		paddingHorizontal: 2,
 		marginTop: 2,
 		backgroundColor: Colors.greenLight,
 	},
