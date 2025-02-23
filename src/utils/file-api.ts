@@ -66,51 +66,9 @@ export async function LoadStatusFiles() {
 			};
 
 			return statusData;
-		}
-
-		if (!storedUri) {
-			try {
-				const permissions =
-					await StorageAccessFramework.requestDirectoryPermissionsAsync(
-						STORAGE_FOLDER
-					);
-				if (permissions.granted) {
-					const uri = permissions.directoryUri;
-
-					await saveStatusFolder(uri);
-
-					const files = await StorageAccessFramework.readDirectoryAsync(uri);
-
-					const statusFiles = files
-						.map((fileUri) => ({
-							uri: fileUri,
-							name: fileUri.split('%').pop() || '',
-						}))
-						.filter((file) => file.name);
-
-					const photoFiles = statusFiles.filter((file) =>
-						file.name.match(/\.(jpg|jpeg|png)$/i)
-					);
-					const videoFiles = statusFiles.filter((file) =>
-						file.name.match(/\.(mp4|mkv|avi)$/i)
-					);
-
-					const statusData = {
-						photoFiles,
-						videoFiles,
-					};
-
-					return statusData;
-				} else {
-					console.log('User cancelled folder selection');
-				}
-			} catch (error) {
-				if ((error as any).code === 'cancel') {
-					console.log('User cancelled folder selection');
-				} else {
-					console.error('Error selecting folder:', error);
-				}
-			}
+		} else {
+			console.log('No folder selected');
+			Toast('No folder selected');
 		}
 
 		return [];
@@ -222,18 +180,8 @@ export async function SaveFile(URI: string) {
 
 		// If the folder is not stored, request permission
 		if (!parentUri) {
-			const permissions =
-				await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
-					SAVE_STORAGE_FOLDER
-				);
-			if (!permissions.granted) {
-				console.error('Permission to access storage is not granted');
-				Toast('Permission to access storage is not granted');
-				return;
-			}
-
-			parentUri = permissions.directoryUri;
-			await AsyncStorage.setItem(STORAGE_KEY, parentUri);
+			console.error('Error: No parent URI found');
+			return;
 		}
 
 		// Extract the last part of the URI, which will be the file name
