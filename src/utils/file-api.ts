@@ -23,7 +23,11 @@ export async function selectWhatsAppStatusFolder() {
 
 		if (permissions.granted) {
 			const uri = permissions.directoryUri;
-			await saveStatusFolder(uri);
+			try {
+				await AsyncStorage.setItem('statusFolderUri', uri);
+			} catch (error) {
+				console.error('Error saving folder:', error);
+			}
 			return true;
 		} else {
 			console.log('User cancelled folder selection');
@@ -74,20 +78,6 @@ export async function LoadStatusFiles() {
 		return [];
 	} catch (error) {
 		console.error('Error loading stored folder:', error);
-	}
-}
-
-/**
- * @description Saves the status folder
- * @param uri - Folder URI
- * @returns void
- */
-
-export async function saveStatusFolder(uri: string) {
-	try {
-		await AsyncStorage.setItem('statusFolderUri', uri);
-	} catch (error) {
-		console.error('Error saving folder:', error);
 	}
 }
 
@@ -147,7 +137,6 @@ export async function LoadSavedFiles() {
 			}
 
 			const parentUri = permissions.directoryUri;
-			await AsyncStorage.setItem(STORAGE_KEY, parentUri);
 
 			const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(
 				parentUri

@@ -61,6 +61,11 @@ export default function GlobalProvider({
 
 	checkForPermissions();
 
+	/**
+	 * @description Fetches the saved status
+	 * @returns
+	 */
+
 	const fetchSavedStatus = async () => {
 		try {
 			const savedStatusData = await LoadSavedFiles();
@@ -89,6 +94,11 @@ export default function GlobalProvider({
 			setIsLoading(false);
 		}
 	}
+
+	/**
+	 * @description Saves the file to storage
+	 * @returns
+	 */
 
 	async function SaveFileToStorage(URI: string) {
 		if (!URI) {
