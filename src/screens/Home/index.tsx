@@ -14,8 +14,8 @@ export default function StatusScreen() {
 	const { isPermissionGranted } = useGlobalContext();
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	React.useEffect(() => {
-		if (isPermissionGranted) {
-			navigation.navigate('Home');
+		if (!isPermissionGranted) {
+			navigation.navigate('Welcome');
 		}
 	}, [isPermissionGranted]);
 

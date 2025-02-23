@@ -4,17 +4,17 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import { RootStackParamList } from '.';
 import { Colors } from '@/constants/Colors';
-import { selectWhatsAppStatusFolder } from '@/utils/media-access';
+import {
+	SelectSavedFolder,
+	selectWhatsAppStatusFolder,
+} from '@/utils/file-api';
 import { useGlobalContext } from '@/content/GlobalContent';
-import { SelectSavedFolder } from '@/utils/save-files';
 
 export default function WelcomeScreen() {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const { setIsPermissionGranted, isPermissionGranted } = useGlobalContext();
 	const [statusFolderSelected, setStatusFolderSelected] = React.useState(false);
 	const [saveFolderSelected, setSaveFolderSelected] = React.useState(false);
-
-	console.log(isPermissionGranted);
 
 	React.useEffect(() => {
 		if (isPermissionGranted) {
@@ -36,12 +36,11 @@ export default function WelcomeScreen() {
 		}
 	};
 
-	// Check if both folders are selected
-	const allFoldersSelected = statusFolderSelected && saveFolderSelected;
-
-	if (allFoldersSelected) {
-		setIsPermissionGranted(true);
-	}
+	React.useEffect(() => {
+		if (statusFolderSelected && saveFolderSelected) {
+			setIsPermissionGranted(true);
+		}
+	}, [statusFolderSelected, saveFolderSelected]);
 
 	return (
 		<View style={styles.container}>
@@ -66,28 +65,31 @@ export default function WelcomeScreen() {
 			</TouchableOpacity>
 
 			{/* Select Folder to Save Statuses */}
-			<TouchableOpacity
-				style={[styles.button, saveFolderSelected && styles.buttonSelected]}
-				onPress={() => handleSaveFolderSelection()}
-			>
-				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
-					<MaterialIcons name='save' size={28} color={Colors.white} />
-					<Text style={styles.buttonText}>Select Save Folder</Text>
-				</View>
-				{saveFolderSelected && (
-					<MaterialIcons name='check' size={24} color={Colors.white} />
-				)}
-			</TouchableOpacity>
+			{!isPermissionGranted && (
+				<TouchableOpacity
+					style={[styles.button, saveFolderSelected && styles.buttonSelected]}
+					onPress={() => handleSaveFolderSelection()}
+				>
+					<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+						<MaterialIcons name='save' size={28} color={Colors.white} />
+						<Text style={styles.buttonText}>Select Save Folder</Text>
+					</View>
+					{saveFolderSelected && (
+						<MaterialIcons name='check' size={24} color={Colors.white} />
+					)}
+				</TouchableOpacity>
+			)}
 
 			{/* Continue Button - Only visible when both folders are selected */}
-			{allFoldersSelected && (
+			{(statusFolderSelected && saveFolderSelected) || isPermissionGranted ? (
 				<TouchableOpacity
 					style={styles.continueButton}
 					onPress={() => navigation.navigate('Home')}
 				>
 					<Text style={styles.continueText}>Continue to Home</Text>
 				</TouchableOpacity>
-			)}
+			) : null}
+
 			{/* UserAgreement */}
 			<TouchableOpacity
 				style={styles.agreement}

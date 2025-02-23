@@ -1,16 +1,148 @@
-import { Toast } from '@/lib/Toaster';
+import { StorageAccessFramework } from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Toast } from '@/lib/Toaster';
 import * as FileSystem from 'expo-file-system';
 
-const STORAGE_KEY = 'WHATSAPP_STATUS_STORE'; // Key to store folder URI
 const STORAGE_FOLDER =
+	'content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia%2F.Statuses';
+
+const STORAGE_KEY = 'WHATSAPP_STATUS_STORE'; // Key to store folder URI
+const SAVE_STORAGE_FOLDER =
 	'content://com.android.externalstorage.documents/tree/primary%3AWhatsApp';
+
+/**
+ * @description Selects the WhatsApp status folder
+ * @returns Status files
+ */
+export async function selectWhatsAppStatusFolder() {
+	try {
+		const permissions =
+			await StorageAccessFramework.requestDirectoryPermissionsAsync(
+				STORAGE_FOLDER
+			);
+
+		if (permissions.granted) {
+			const uri = permissions.directoryUri;
+			await saveStatusFolder(uri);
+			return true;
+		} else {
+			console.log('User cancelled folder selection');
+			return false;
+		}
+	} catch (error) {
+		console.error('Error loading stored folder:', error);
+	}
+}
+
+/**
+ * @description Loads the status files
+ * @returns Status files
+ */
+
+export async function LoadStatusFiles() {
+	try {
+		const storedUri = await AsyncStorage.getItem('statusFolderUri');
+
+		if (storedUri) {
+			const files = await StorageAccessFramework.readDirectoryAsync(storedUri);
+
+			const statusFiles = files
+				.map((fileUri) => ({
+					uri: fileUri,
+					name: fileUri.split('%').pop() || '',
+				}))
+				.filter((file) => file.name);
+
+			const photoFiles = statusFiles.filter((file) =>
+				file.name.match(/\.(jpg|jpeg|png)$/i)
+			);
+			const videoFiles = statusFiles.filter((file) =>
+				file.name.match(/\.(mp4|mkv|avi)$/i)
+			);
+
+			const statusData = {
+				photoFiles,
+				videoFiles,
+			};
+
+			return statusData;
+		}
+
+		if (!storedUri) {
+			try {
+				const permissions =
+					await StorageAccessFramework.requestDirectoryPermissionsAsync(
+						STORAGE_FOLDER
+					);
+				if (permissions.granted) {
+					const uri = permissions.directoryUri;
+
+					await saveStatusFolder(uri);
+
+					const files = await StorageAccessFramework.readDirectoryAsync(uri);
+
+					const statusFiles = files
+						.map((fileUri) => ({
+							uri: fileUri,
+							name: fileUri.split('%').pop() || '',
+						}))
+						.filter((file) => file.name);
+
+					const photoFiles = statusFiles.filter((file) =>
+						file.name.match(/\.(jpg|jpeg|png)$/i)
+					);
+					const videoFiles = statusFiles.filter((file) =>
+						file.name.match(/\.(mp4|mkv|avi)$/i)
+					);
+
+					const statusData = {
+						photoFiles,
+						videoFiles,
+					};
+
+					return statusData;
+				} else {
+					console.log('User cancelled folder selection');
+				}
+			} catch (error) {
+				if ((error as any).code === 'cancel') {
+					console.log('User cancelled folder selection');
+				} else {
+					console.error('Error selecting folder:', error);
+				}
+			}
+		}
+
+		return [];
+	} catch (error) {
+		console.error('Error loading stored folder:', error);
+	}
+}
+
+/**
+ * @description Saves the status folder
+ * @param uri - Folder URI
+ * @returns void
+ */
+
+export async function saveStatusFolder(uri: string) {
+	try {
+		await AsyncStorage.setItem('statusFolderUri', uri);
+	} catch (error) {
+		console.error('Error saving folder:', error);
+	}
+}
+
+/**
+ *  @description Selects the folder to save files
+ * @returns
+ */
 
 export async function SelectSavedFolder() {
 	try {
 		const permissions =
 			await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
-				STORAGE_FOLDER
+				SAVE_STORAGE_FOLDER
 			);
 		if (!permissions.granted) {
 			console.error('Permission to access storage is not granted');
@@ -48,7 +180,7 @@ export async function LoadSavedFiles() {
 		} else {
 			const permissions =
 				await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
-					STORAGE_FOLDER
+					SAVE_STORAGE_FOLDER
 				);
 			if (!permissions.granted) {
 				console.error('Permission to access storage is not granted');
@@ -92,7 +224,7 @@ export async function SaveFile(URI: string) {
 		if (!parentUri) {
 			const permissions =
 				await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
-					STORAGE_FOLDER
+					SAVE_STORAGE_FOLDER
 				);
 			if (!permissions.granted) {
 				console.error('Permission to access storage is not granted');
@@ -140,7 +272,12 @@ export async function SaveFile(URI: string) {
 		});
 
 		Toast('File saved successfully!');
-		return true;
+
+		const item = {
+			uri: newFileUri,
+			name: fileName,
+		};
+		return item;
 	} catch (error) {
 		console.error('SaveFile Error:', error);
 	}
@@ -153,10 +290,13 @@ export async function SaveFile(URI: string) {
  */
 
 export async function DeleteFile(URI: string) {
+	if (!URI) {
+		Toast('Error: No file URI found');
+		return;
+	}
 	try {
 		// Retrieve stored parent URI
 		const parentUri = await AsyncStorage.getItem(STORAGE_KEY);
-		console.log('📁 Stored Parent URI:', parentUri);
 
 		if (!parentUri) {
 			console.error('Error: No parent URI found');
@@ -184,6 +324,11 @@ export async function DeleteFile(URI: string) {
 		// Delete the file
 		await FileSystem.StorageAccessFramework.deleteAsync(URI);
 		Toast('File deleted successfully!');
+		const item = {
+			uri: URI,
+			name: fileName,
+		};
+		return item;
 	} catch (error) {
 		console.error('DeleteFile Error:', error);
 	}

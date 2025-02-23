@@ -4,8 +4,19 @@ import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '@/screens';
+import { AntDesign } from '@expo/vector-icons';
 
-export default function CustomHeader() {
+type CustomHeaderProps = {
+	showBackButton?: boolean;
+	showMenu?: boolean;
+	title?: string;
+};
+
+export default function CustomHeader({
+	showBackButton = true,
+	showMenu = true,
+	title = 'Status Saver',
+}: CustomHeaderProps) {
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 	const [dropdownVisible, setDropdownVisible] = useState(false);
 
@@ -15,23 +26,28 @@ export default function CustomHeader() {
 
 	return (
 		<View style={styles.header}>
-			<TouchableOpacity onPress={() => navigation.goBack()}>
-				<Entypo
-					name='chevron-left'
-					size={20}
+			{showBackButton && (
+				<AntDesign
+					name='arrowleft'
+					onPress={() => navigation.goBack()}
+					size={24}
 					color='white'
 					style={styles.icon}
 				/>
-			</TouchableOpacity>
-			<Text style={styles.headerText}>Status Saver</Text>
-			<TouchableOpacity onPress={toggleDropdown}>
-				<Entypo
-					name={dropdownVisible ? 'cross' : 'dots-three-vertical'}
-					size={20}
-					color='black'
-					style={styles.icon}
-				/>
-			</TouchableOpacity>
+			)}
+
+			<Text style={styles.headerText}>{title}</Text>
+
+			{showMenu && (
+				<TouchableOpacity onPress={toggleDropdown}>
+					<Entypo
+						name={dropdownVisible ? 'cross' : 'dots-three-vertical'}
+						size={20}
+						color='black'
+						style={styles.icon}
+					/>
+				</TouchableOpacity>
+			)}
 			{dropdownVisible && (
 				<View style={styles.dropdownMenu}>
 					<TouchableOpacity

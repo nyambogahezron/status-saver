@@ -9,7 +9,11 @@ export default function Saved() {
 
 	return (
 		<View style={styles.container}>
-			<StatusItem status={savedImageStatus} statusType='image' />
+			<StatusItem
+				currentPage='save'
+				status={savedImageStatus}
+				statusType='image'
+			/>
 		</View>
 	);
 }

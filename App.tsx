@@ -51,17 +51,25 @@ function RootStack() {
 				options={{
 					headerShown: true,
 					title: '',
-					header: () => <CustomHeader />,
+					header: () => <CustomHeader showBackButton={false} />,
 				}}
 			/>
-			<Stack.Screen name='Settings' component={Screens.Settings} />
+			<Stack.Screen
+				name='Settings'
+				component={Screens.Settings}
+				options={{
+					headerShown: true,
+					title: 'Settings',
+					header: () => <CustomHeader title='Settings' />,
+				}}
+			/>
 			<Stack.Screen
 				name='Help'
 				component={Screens.Help}
 				options={{
 					headerShown: true,
 					title: 'Help',
-					header: () => <CustomHeader />,
+					header: () => <CustomHeader title='Help' />,
 				}}
 			/>
 			<Stack.Screen
@@ -69,8 +77,7 @@ function RootStack() {
 				component={Screens.UserAgreement}
 				options={{
 					headerShown: true,
-					title: 'User Agreement',
-					header: () => <CustomHeader />,
+					header: () => <CustomHeader title='User Agreement' />,
 				}}
 			/>
 		</Stack.Navigator>

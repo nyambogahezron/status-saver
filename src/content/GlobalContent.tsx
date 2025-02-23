@@ -1,5 +1,4 @@
-import { LoadStatusFiles } from '@/utils/media-access';
-import { LoadSavedFiles, SaveFile } from '@/utils/save-files';
+import { LoadSavedFiles, LoadStatusFiles, SaveFile } from '@/utils/file-api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
@@ -100,17 +99,20 @@ export default function GlobalProvider({
 		const save = await SaveFile(URI);
 
 		if (save) {
-			fetchSavedStatus();
+			const newItem = {
+				url: URI,
+				name: URI.split('/').pop() || 'unknown',
+			};
+
+			setSavedImageStatus([...savedImageStatus, newItem]);
 		}
 	}
 
 	useEffect(() => {
-		checkForPermissions();
-
 		fetchSavedStatus();
 
 		fetchStatus();
-	}, []);
+	}, [isPermissionGranted]);
 
 	return (
 		<GlobalContext.Provider

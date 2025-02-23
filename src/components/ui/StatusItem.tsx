@@ -20,12 +20,19 @@ import BackButton from '../navigation/BackButton';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import { useGlobalContext } from '@/content/GlobalContent';
+import { DeleteFile } from '@/utils/file-api';
+
+type Status = {
+	uri: string;
+	type: 'image' | 'video' | 'audio';
+};
 
 const { height, width } = Dimensions.get('window');
 
 type StatusItemProps = {
 	status: any;
 	statusType: 'image' | 'video' | 'audio';
+	currentPage?: 'save' | 'otherPage';
 };
 
 const VideoItem = React.memo(({ url }: { url: string }) => {
@@ -65,12 +72,13 @@ const VideoItem = React.memo(({ url }: { url: string }) => {
 export default function StatusItem({
 	status,
 	statusType,
+	currentPage,
 }: StatusItemProps): JSX.Element {
 	const [modalVisible, setModalVisible] = React.useState(false);
 	const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
-	const [currentIndex, setCurrentIndex] = React.useState<number>(0);
+	const [currentIndex, setCurrentIndex] = React.useState<number>(1);
 
-	const { SaveFileToStorage } = useGlobalContext();
+	const { SaveFileToStorage, setSavedImageStatus } = useGlobalContext();
 
 	React.useEffect(() => {
 		setSelectedIndex(currentIndex);
@@ -85,6 +93,22 @@ export default function StatusItem({
 	const handleOnStatusSave = async () => {
 		if (selectedIndex !== null) {
 			SaveFileToStorage(status[selectedIndex].uri);
+		}
+	};
+
+	const handleOnStatusDelete = async () => {
+		if (selectedIndex !== null) {
+			const res = await DeleteFile(status[selectedIndex].uri);
+
+			if (res) {
+				const newStatus = status
+					.filter((_: Status, i: number) => i !== selectedIndex)
+					.map((item: Status) => ({
+						url: item.uri,
+						name: item.uri.split('/').pop() || 'unknown',
+					}));
+				setSavedImageStatus(newStatus);
+			}
 		}
 	};
 
@@ -163,18 +187,31 @@ export default function StatusItem({
 							<BackButton onPress={() => setModalVisible(false)} />
 							<View style={styles.imageCounter}>
 								<Text style={styles.counterText}>
-									{currentIndex && currentIndex + 1} / {status.length}
+									{currentIndex && currentIndex + 1} / {status?.length}
 								</Text>
 							</View>
-							<TouchableOpacity onPress={handleOnStatusSave}>
-								<MaterialIcons name='save-alt' size={24} color='white' />
-							</TouchableOpacity>
 							<TouchableOpacity
 								style={styles.shareButton}
 								onPress={handleShare}
 							>
 								<Ionicons name='share-social' size={24} color='white' />
 							</TouchableOpacity>
+							{/* save or delete btn  */}
+							{currentPage === 'save' ? (
+								<TouchableOpacity
+									style={styles.shareButton}
+									onPress={() => {
+										handleOnStatusDelete();
+										setModalVisible(false);
+									}}
+								>
+									<Ionicons name='trash' size={22} color='red' />
+								</TouchableOpacity>
+							) : (
+								<TouchableOpacity onPress={handleOnStatusSave}>
+									<MaterialIcons name='save-alt' size={24} color='white' />
+								</TouchableOpacity>
+							)}
 						</View>
 						<View>
 							{modalVisible && (
