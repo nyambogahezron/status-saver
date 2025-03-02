@@ -23,7 +23,7 @@ import { useGlobalContext } from '@/content/GlobalContent';
 import { DeleteFile } from '@/utils/file-api';
 
 type Status = {
-	uri: string;
+	url: string;
 	type: 'image' | 'video' | 'audio';
 };
 
@@ -92,20 +92,20 @@ export default function StatusItem({
 
 	const handleOnStatusSave = async () => {
 		if (selectedIndex !== null) {
-			SaveFileToStorage(status[selectedIndex].uri);
+			SaveFileToStorage(status[selectedIndex].url);
 		}
 	};
 
 	const handleOnStatusDelete = async () => {
 		if (selectedIndex !== null) {
-			const res = await DeleteFile(status[selectedIndex].uri);
+			const res = await DeleteFile(status[selectedIndex].url);
 
 			if (res) {
 				const newStatus = status
 					.filter((_: Status, i: number) => i !== selectedIndex)
 					.map((item: Status) => ({
-						url: item.uri,
-						name: item.uri.split('/').pop() || 'unknown',
+						url: item.url,
+						name: item.url.split('/').pop() || 'unknown',
 					}));
 				setSavedImageStatus(newStatus);
 			}
@@ -117,7 +117,7 @@ export default function StatusItem({
 			try {
 				await Share.share({
 					message: 'Check out this status!',
-					url: status[selectedIndex].uri,
+					url: status[selectedIndex].url,
 				});
 			} catch (error) {
 				console.error('Error sharing the image:', error);
@@ -146,7 +146,7 @@ export default function StatusItem({
 				>
 					<Image
 						style={styles.statusImage}
-						source={status.uri}
+						source={status.url}
 						placeholder={{ blurHash }}
 						contentFit='cover'
 						transition={1000}
@@ -229,11 +229,11 @@ export default function StatusItem({
 									viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
 									renderItem={({ item }) =>
 										item.type === 'video' ? (
-											<VideoItem url={item.uri} />
+											<VideoItem url={item.url} />
 										) : (
 											<Image
 												style={styles.fullScreenImage}
-												source={item.uri}
+												source={item.url}
 												contentFit='contain'
 												transition={1000}
 											/>

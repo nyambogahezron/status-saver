@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Toast } from '@/lib/Toaster';
 import * as FileSystem from 'expo-file-system';
 
+const STORAGE_FOLDER_KEY = 'statusFolderUri'; // Key to store folder URI
 const STORAGE_FOLDER =
 	'content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia%2F.Statuses';
 
@@ -24,7 +25,7 @@ export async function selectWhatsAppStatusFolder() {
 		if (permissions.granted) {
 			const uri = permissions.directoryUri;
 			try {
-				await AsyncStorage.setItem('statusFolderUri', uri);
+				await AsyncStorage.setItem(STORAGE_FOLDER_KEY, uri);
 			} catch (error) {
 				console.error('Error saving folder:', error);
 			}
@@ -45,7 +46,7 @@ export async function selectWhatsAppStatusFolder() {
 
 export async function LoadStatusFiles() {
 	try {
-		const storedUri = await AsyncStorage.getItem('statusFolderUri');
+		const storedUri = await AsyncStorage.getItem(STORAGE_FOLDER_KEY);
 
 		if (storedUri) {
 			const files = await StorageAccessFramework.readDirectoryAsync(storedUri);
@@ -126,24 +127,8 @@ export async function LoadSavedFiles() {
 			const data = await filterFiles(files);
 			return data;
 		} else {
-			const permissions =
-				await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
-					SAVE_STORAGE_FOLDER
-				);
-			if (!permissions.granted) {
-				console.error('Permission to access storage is not granted');
-				Toast('Permission to access storage is not granted');
-				return;
-			}
-
-			const parentUri = permissions.directoryUri;
-
-			const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(
-				parentUri
-			);
-
-			const data = await filterFiles(files);
-			return data;
+			console.error('Error: No parent URI found');
+			return { photoFiles: [], videoFiles: [] };
 		}
 	} catch (error) {
 		console.error('GetSavedFiles Error:', error);

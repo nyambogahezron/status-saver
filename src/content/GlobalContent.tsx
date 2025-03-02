@@ -7,11 +7,6 @@ interface ImageStatus {
 	name: string;
 }
 
-interface StatusData {
-	photoFiles: { uri: string; name: string }[];
-	videoFiles: { uri: string; name: string }[];
-}
-
 interface GlobalContextProps {
 	imageStatus: ImageStatus[];
 	setImageStatus: (status: ImageStatus[]) => void;
@@ -70,8 +65,23 @@ export default function GlobalProvider({
 		try {
 			const savedStatusData = await LoadSavedFiles();
 			if (savedStatusData) {
-				setSavedImageStatus(savedStatusData?.photoFiles);
-				setSavedVideoStatus(savedStatusData?.videoFiles);
+				if (
+					'photoFiles' in savedStatusData &&
+					'videoFiles' in savedStatusData
+				) {
+					setSavedImageStatus(
+						savedStatusData.photoFiles.map((file) => ({
+							url: file.uri,
+							name: file.name,
+						}))
+					);
+					setSavedVideoStatus(
+						savedStatusData.videoFiles.map((file) => ({
+							url: file.uri,
+							name: file.name,
+						}))
+					);
+				}
 			}
 		} catch (error) {
 			console.error('Error loading saved status:', error);
@@ -83,9 +93,23 @@ export default function GlobalProvider({
 		try {
 			setIsLoading(true);
 			const statusData = await LoadStatusFiles();
-			if (statusData) {
-				setImageStatus(statusData?.photoFiles);
-				setVideoStatus(statusData?.videoFiles);
+			if (
+				statusData &&
+				'photoFiles' in statusData &&
+				'videoFiles' in statusData
+			) {
+				setImageStatus(
+					statusData.photoFiles.map((file) => ({
+						url: file.uri,
+						name: file.name,
+					}))
+				);
+				setVideoStatus(
+					statusData.videoFiles.map((file) => ({
+						url: file.uri,
+						name: file.name,
+					}))
+				);
 			}
 		} catch (error) {
 			console.error('Error loading status files:', error);

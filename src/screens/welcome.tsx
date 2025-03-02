@@ -20,7 +20,13 @@ export default function WelcomeScreen() {
 		if (isPermissionGranted) {
 			navigation.navigate('Home');
 		}
-	}, [isPermissionGranted]);
+	}, []);
+
+	React.useLayoutEffect(() => {
+		navigation.setOptions({
+			headerShown: false,
+		});
+	}, [navigation]);
 
 	const handleStatusFolderSelection = async () => {
 		const isFolderSelected = await selectWhatsAppStatusFolder();
@@ -49,37 +55,43 @@ export default function WelcomeScreen() {
 				Choose folders to load and save WhatsApp statuses. NOTE : Folder are
 				pre-select for you, for better experience.
 			</Text>
-
 			{/* Select Folder to Load Statuses */}
-			<TouchableOpacity
-				style={[styles.button, statusFolderSelected && styles.buttonSelected]}
-				onPress={() => handleStatusFolderSelection()}
-			>
-				<View style={{ flexDirection: 'row', alignItems: 'center' }}>
-					<MaterialIcons name='folder-open' size={28} color={Colors.white} />
-					<Text style={styles.buttonText}>Select Status Folder</Text>
-				</View>
-				{statusFolderSelected && (
-					<MaterialIcons name='check' size={24} color={Colors.white} />
-				)}
-			</TouchableOpacity>
-
-			{/* Select Folder to Save Statuses */}
 			{!isPermissionGranted && (
-				<TouchableOpacity
-					style={[styles.button, saveFolderSelected && styles.buttonSelected]}
-					onPress={() => handleSaveFolderSelection()}
-				>
-					<View style={{ flexDirection: 'row', alignItems: 'center' }}>
-						<MaterialIcons name='save' size={28} color={Colors.white} />
-						<Text style={styles.buttonText}>Select Save Folder</Text>
-					</View>
-					{saveFolderSelected && (
-						<MaterialIcons name='check' size={24} color={Colors.white} />
-					)}
-				</TouchableOpacity>
+				<>
+					<TouchableOpacity
+						style={[
+							styles.button,
+							statusFolderSelected && styles.buttonSelected,
+						]}
+						onPress={() => handleStatusFolderSelection()}
+					>
+						<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+							<MaterialIcons
+								name='folder-open'
+								size={28}
+								color={Colors.white}
+							/>
+							<Text style={styles.buttonText}>Select Status Folder</Text>
+						</View>
+						{statusFolderSelected && (
+							<MaterialIcons name='check' size={24} color={Colors.white} />
+						)}
+					</TouchableOpacity>
+					// {/* Select Folder to Save Statuses */}
+					<TouchableOpacity
+						style={[styles.button, saveFolderSelected && styles.buttonSelected]}
+						onPress={() => handleSaveFolderSelection()}
+					>
+						<View style={{ flexDirection: 'row', alignItems: 'center' }}>
+							<MaterialIcons name='save' size={28} color={Colors.white} />
+							<Text style={styles.buttonText}>Select Save Folder</Text>
+						</View>
+						{saveFolderSelected && (
+							<MaterialIcons name='check' size={24} color={Colors.white} />
+						)}
+					</TouchableOpacity>
+				</>
 			)}
-
 			{/* Continue Button - Only visible when both folders are selected */}
 			{(statusFolderSelected && saveFolderSelected) || isPermissionGranted ? (
 				<TouchableOpacity
@@ -89,7 +101,6 @@ export default function WelcomeScreen() {
 					<Text style={styles.continueText}>Continue to Home</Text>
 				</TouchableOpacity>
 			) : null}
-
 			{/* UserAgreement */}
 			<TouchableOpacity
 				style={styles.agreement}
@@ -109,7 +120,6 @@ export default function WelcomeScreen() {
 					User Agreement
 				</Text>
 			</TouchableOpacity>
-
 			{/* Help Page Link */}
 			<TouchableOpacity
 				style={styles.helpButton}
