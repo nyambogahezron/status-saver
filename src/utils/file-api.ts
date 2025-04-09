@@ -1,41 +1,170 @@
-import { StorageAccessFramework } from 'expo-file-system';
+import RNFS from 'react-native-fs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Toast } from '@/lib/Toaster';
-import * as FileSystem from 'expo-file-system';
+import { PermissionsAndroid, Platform, Linking } from 'react-native';
+import * as DocumentPicker from 'expo-document-picker';
 
-const STORAGE_FOLDER_KEY = 'statusFolderUri'; // Key to store folder URI
-const STORAGE_FOLDER =
-	'content://com.android.externalstorage.documents/tree/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia%2F.Statuses';
+const STORAGE_FOLDER_KEY = 'statusFolderUri';
+const STORAGE_KEY = 'WHATSAPP_STATUS_STORE';
 
-const STORAGE_KEY = 'WHATSAPP_STATUS_STORE'; // Key to store folder URI
-const SAVE_STORAGE_FOLDER =
-	'content://com.android.externalstorage.documents/tree/primary%3AWhatsApp';
+// Possible WhatsApp status paths
+const WHATSAPP_STATUS_PATHS = [
+	'/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/.Statuses',
+	'/storage/emulated/0/WhatsApp/Media/.Statuses',
+	'/storage/emulated/0/WhatsApp/.Statuses',
+];
+
+export const WHATSAPP_STATUS_PATH = WHATSAPP_STATUS_PATHS[0];
+const SAVE_STORAGE_FOLDER = '/storage/emulated/0/WhatsApp';
+
+interface StatusFile {
+	uri: string;
+	name: string;
+}
+
+interface StatusData {
+	photoFiles: StatusFile[];
+	videoFiles: StatusFile[];
+}
 
 /**
- * @description Selects the WhatsApp status folder
- * @returns Status files
+ * @description Open folder picker to select WhatsApp status folder
  */
 export async function selectWhatsAppStatusFolder() {
 	try {
-		const permissions =
-			await StorageAccessFramework.requestDirectoryPermissionsAsync(
-				STORAGE_FOLDER
-			);
+		if (Platform.OS === 'android') {
+			// Open folder picker
+			const result = await DocumentPicker.getDocumentAsync({
+				type: '*/*',
+				copyToCacheDirectory: false,
+			});
+			console.log('Selected folder:', result);
 
-		if (permissions.granted) {
-			const uri = permissions.directoryUri;
-			try {
-				await AsyncStorage.setItem(STORAGE_FOLDER_KEY, uri);
-			} catch (error) {
-				console.error('Error saving folder:', error);
+			if (result && result.assets && result.assets[0]) {
+				// Get the parent directory of the selected file
+				const selectedPath = result.assets[0].uri;
+				const folderPath = selectedPath.substring(
+					0,
+					selectedPath.lastIndexOf('/')
+				);
+
+				// Store the selected folder path
+				await AsyncStorage.setItem(STORAGE_FOLDER_KEY, folderPath);
+				Toast('WhatsApp status folder selected successfully!');
+				return true;
 			}
-			return true;
-		} else {
-			console.log('User cancelled folder selection');
-			return false;
 		}
+		return false;
 	} catch (error) {
-		console.error('Error loading stored folder:', error);
+		console.error('Error selecting folder:', error);
+		Toast('Failed to select WhatsApp status folder');
+		return false;
+	}
+}
+
+/**
+ * @description Request necessary permissions for accessing storage
+ */
+async function requestStoragePermission() {
+	try {
+		if (Platform.OS === 'android') {
+			if (Platform.Version >= 30) {
+				// For Android 11 and above, we need to use SAF
+				const storedPath = await AsyncStorage.getItem(STORAGE_FOLDER_KEY);
+				if (!storedPath) {
+					Toast('Please select the WhatsApp status folder');
+					return false;
+				}
+				return true;
+			} else {
+				// For Android 10 and below
+				const granted = await PermissionsAndroid.request(
+					PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+					{
+						title: 'Storage Permission',
+						message:
+							'App needs access to your storage to read WhatsApp statuses',
+						buttonNeutral: 'Ask Me Later',
+						buttonNegative: 'Cancel',
+						buttonPositive: 'OK',
+					}
+				);
+				return granted === PermissionsAndroid.RESULTS.GRANTED;
+			}
+		}
+		return true;
+	} catch (err) {
+		console.error('Error requesting storage permission:', err);
+		return false;
+	}
+}
+
+/**
+ * @description Load files from a directory
+ */
+async function loadFilesFromDirectory(
+	directoryPath: string
+): Promise<StatusData> {
+	try {
+		console.log(`Loading files from: ${directoryPath}`);
+		const exists = await RNFS.exists(directoryPath);
+		if (!exists) {
+			console.log('Directory does not exist');
+			return { photoFiles: [], videoFiles: [] };
+		}
+
+		// First try to read the directory
+		let files = await RNFS.readDir(directoryPath);
+		console.log(`Found ${files.length} files in directory:`, files);
+
+		// If no files found in .Statuses, try to find the actual status files
+		if (files.length === 0 && directoryPath.includes('.Statuses')) {
+			console.log(
+				'No files found in .Statuses, trying to find status files...'
+			);
+			// Try to find files in the parent directory
+			const parentDir = directoryPath.substring(
+				0,
+				directoryPath.lastIndexOf('/')
+			);
+			console.log('Checking parent directory:', parentDir);
+			files = await RNFS.readDir(parentDir);
+			console.log(`Found ${files.length} files in parent directory:`, files);
+		}
+
+		// Filter files that are actual files (not directories) and have valid names
+		const statusFiles = files
+			.filter((file) => file.isFile())
+			.map((file) => {
+				// Convert file path to proper URI format
+				const uri =
+					Platform.OS === 'android' ? `file://${file.path}` : file.path;
+
+				return {
+					uri,
+					name: file.name,
+				};
+			})
+			.filter((file) => file.name && !file.name.startsWith('.')); // Exclude hidden files
+
+		console.log('Filtered status files:', statusFiles);
+
+		// Filter photos and videos
+		const photoFiles = statusFiles.filter((file) =>
+			file.name.toLowerCase().match(/\.(jpg|jpeg|png)$/)
+		);
+
+		const videoFiles = statusFiles.filter((file) =>
+			file.name.toLowerCase().match(/\.(mp4|mkv|avi)$/)
+		);
+
+		console.log('Found photos:', photoFiles.length);
+		console.log('Found videos:', videoFiles.length);
+
+		return { photoFiles, videoFiles };
+	} catch (error) {
+		console.error(`Error loading files from ${directoryPath}:`, error);
+		return { photoFiles: [], videoFiles: [] };
 	}
 }
 
@@ -43,229 +172,133 @@ export async function selectWhatsAppStatusFolder() {
  * @description Loads the status files
  * @returns Status files
  */
-
-export async function LoadStatusFiles() {
+export async function LoadStatusFiles(): Promise<StatusData> {
 	try {
-		const storedUri = await AsyncStorage.getItem(STORAGE_FOLDER_KEY);
+		console.log('Starting LoadStatusFiles...');
 
-		if (storedUri) {
-			const files = await StorageAccessFramework.readDirectoryAsync(storedUri);
+		// Request permissions first
+		const hasPermission = await requestStoragePermission();
+		console.log('Permission check result:', hasPermission);
 
-			const statusFiles = files
-				.map((fileUri) => ({
-					uri: fileUri,
-					name: fileUri.split('%').pop() || '',
-				}))
-				.filter((file) => file.name);
-
-			const photoFiles = statusFiles.filter((file) =>
-				file.name.match(/\.(jpg|jpeg|png)$/i)
-			);
-			const videoFiles = statusFiles.filter((file) =>
-				file.name.match(/\.(mp4|mkv|avi)$/i)
-			);
-
-			const statusData = {
-				photoFiles,
-				videoFiles,
-			};
-
-			return statusData;
-		} else {
-			console.log('No folder selected');
-			Toast('No folder selected');
+		if (!hasPermission) {
+			Toast('Storage permission is required to access WhatsApp statuses');
+			return { photoFiles: [], videoFiles: [] };
 		}
 
-		return [];
+		// Get the stored folder path
+		const storedPath = await AsyncStorage.getItem(STORAGE_FOLDER_KEY);
+		const folderPath = storedPath || WHATSAPP_STATUS_PATH;
+		console.log('Using folder path:', folderPath);
+
+		// Load files from the selected folder
+		const statusData = await loadFilesFromDirectory(folderPath);
+
+		// If no files found in status folder, try the WhatsApp directory
+		if (
+			statusData.photoFiles.length === 0 &&
+			statusData.videoFiles.length === 0
+		) {
+			console.log(
+				'No files found in status folder, trying WhatsApp directory...'
+			);
+			const whatsappData = await loadFilesFromDirectory(SAVE_STORAGE_FOLDER);
+			if (
+				whatsappData.photoFiles.length > 0 ||
+				whatsappData.videoFiles.length > 0
+			) {
+				console.log('Found files in WhatsApp directory');
+				return whatsappData;
+			}
+			Toast(
+				'No status files found. Please check if WhatsApp has any statuses.'
+			);
+		}
+
+		return statusData;
 	} catch (error) {
-		console.error('Error loading stored folder:', error);
+		console.error('Error loading WhatsApp status folder:', error);
+		Toast('Failed to load WhatsApp statuses');
+		return { photoFiles: [], videoFiles: [] };
 	}
 }
 
 /**
- *  @description Selects the folder to save files
- * @returns
+ * @description Saves a file to the storage
+ * @param URI The URI of the file to save
+ * @returns boolean indicating success
  */
-
-export async function SelectSavedFolder() {
+export async function SaveFile(URI: string): Promise<boolean> {
 	try {
-		const permissions =
-			await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync(
-				SAVE_STORAGE_FOLDER
-			);
-		if (!permissions.granted) {
-			console.error('Permission to access storage is not granted');
-			Toast('Permission to access storage is not granted');
-			return;
+		const fileName = URI.split('/').pop();
+		if (!fileName) {
+			Toast('Invalid file name');
+			return false;
 		}
 
-		const parentUri = permissions.directoryUri;
-		await AsyncStorage.setItem(STORAGE_KEY, parentUri);
+		const destinationPath = `${SAVE_STORAGE_FOLDER}/${fileName}`;
+		await RNFS.copyFile(URI, destinationPath);
+		Toast('File saved successfully!');
+		return true;
+	} catch (error) {
+		console.error('Error saving file:', error);
+		Toast('Failed to save file');
+		return false;
+	}
+}
 
-		Toast('Folder selected successfully!');
+/**
+ * @description Selects the folder to save files
+ * @returns
+ */
+export async function SelectSavedFolder() {
+	try {
+		// Check if save folder exists, if not create it
+		const exists = await RNFS.exists(SAVE_STORAGE_FOLDER);
+		if (!exists) {
+			await RNFS.mkdir(SAVE_STORAGE_FOLDER);
+		}
+
+		await AsyncStorage.setItem(STORAGE_KEY, SAVE_STORAGE_FOLDER);
+		Toast('Save folder selected successfully!');
 		return true;
 	} catch (error) {
 		console.error('SelectFolder Error:', error);
+		Toast('Failed to create save folder');
+		return false;
 	}
 }
 
 /**
- * @description Get the saves files from the device storage
- * @example GetSavedFiles() => ['file1.jpg', 'file2.mp4']
+ * @description Get the saved files from the device storage
  */
-
 export async function LoadSavedFiles() {
 	try {
-		// Retrieve stored parent URI
-		const parentUri = await AsyncStorage.getItem(STORAGE_KEY);
+		const storedPath = await AsyncStorage.getItem(STORAGE_KEY);
+		const folderPath = storedPath || SAVE_STORAGE_FOLDER;
 
-		if (parentUri) {
-			// Read the contents of the folder
-			const files = await FileSystem.StorageAccessFramework.readDirectoryAsync(
-				parentUri
-			);
-			const data = await filterFiles(files);
+		if (folderPath) {
+			const files = await RNFS.readDir(folderPath);
+			console.log(files);
+			const data = await filterFiles(files.map((f) => f.path));
 			return data;
 		} else {
-			console.error('Error: No parent URI found');
+			console.error('Error: No save folder found');
 			return { photoFiles: [], videoFiles: [] };
 		}
 	} catch (error) {
 		console.error('GetSavedFiles Error:', error);
-		return [];
-	}
-}
-
-/**
- * @description Save a file to the selected folder in the device storage
- * @param {string} URI - The URI of the file to save of the form content://... or file://...
- * @example SaveFile('content://...') => void
- */
-
-export async function SaveFile(URI: string) {
-	if (!URI) {
-		console.error('Error: No file URI found');
-		return;
-	}
-
-	try {
-		// Retrieve stored parent URI
-		let parentUri = await AsyncStorage.getItem(STORAGE_KEY);
-
-		// If the folder is not stored, request permission
-		if (!parentUri) {
-			console.error('Error: No parent URI found');
-			return;
-		}
-
-		// Extract the last part of the URI, which will be the file name
-		const fileName = URI?.split('%').pop();
-
-		if (!fileName) {
-			console.error('Error: No valid file name found');
-			return;
-		}
-
-		// Check if file already exists in the folder
-		const folderContents =
-			await FileSystem.StorageAccessFramework.readDirectoryAsync(parentUri);
-		const existingFile = folderContents.find((file) => file.includes(fileName));
-
-		if (existingFile) {
-			Toast('File already exists!');
-			return;
-		}
-
-		// Create a new file in the selected folder with the extracted file name
-		const newFileUri = await FileSystem.StorageAccessFramework.createFileAsync(
-			parentUri,
-			fileName, // Use the clean filename here
-			'image/*'
-		);
-
-		// Read original file as Base64
-		const fileData = await FileSystem.readAsStringAsync(URI, {
-			encoding: FileSystem.EncodingType.Base64,
-		});
-
-		// Write Base64 data to the new file
-		await FileSystem.writeAsStringAsync(newFileUri, fileData, {
-			encoding: FileSystem.EncodingType.Base64,
-		});
-
-		Toast('File saved successfully!');
-
-		const item = {
-			uri: newFileUri,
-			name: fileName,
-		};
-		return item;
-	} catch (error) {
-		console.error('SaveFile Error:', error);
-	}
-}
-
-/**
- * @description Delete a file from the device storage
- * @param {string} URI - The URI of the file to delete
- *
- */
-
-export async function DeleteFile(URI: string) {
-	if (!URI) {
-		Toast('Error: No file URI found');
-		return;
-	}
-	try {
-		// Retrieve stored parent URI
-		const parentUri = await AsyncStorage.getItem(STORAGE_KEY);
-
-		if (!parentUri) {
-			console.error('Error: No parent URI found');
-			return;
-		}
-
-		// Extract the last part of the URI, which will be the file name
-		const fileName = URI.split('/').pop();
-
-		if (!fileName) {
-			console.error('Error: No valid file name found');
-			return;
-		}
-
-		// Check if file exists in the folder
-		const folderContents =
-			await FileSystem.StorageAccessFramework.readDirectoryAsync(parentUri);
-		const existingFile = folderContents.find((file) => file.includes(fileName));
-
-		if (!existingFile) {
-			Toast('File not found!');
-			return;
-		}
-
-		// Delete the file
-		await FileSystem.StorageAccessFramework.deleteAsync(URI);
-		Toast('File deleted successfully!');
-		const item = {
-			uri: URI,
-			name: fileName,
-		};
-		return item;
-	} catch (error) {
-		console.error('DeleteFile Error:', error);
+		return { photoFiles: [], videoFiles: [] };
 	}
 }
 
 /**
  * @description Filter the files into photos and videos
- * @param {string[]} files - Array of file URIs
  */
-
 async function filterFiles(files: string[]) {
 	const statusFiles = files
-		.map((fileUri) => ({
-			uri: fileUri,
-			name: fileUri.split('%').pop() || '',
+		.map((filePath) => ({
+			uri: filePath,
+			name: filePath.split('/').pop() || '',
 		}))
 		.filter((file) => file.name);
 
@@ -277,10 +310,8 @@ async function filterFiles(files: string[]) {
 		file.name.match(/\.(mp4|mkv|avi)$/i)
 	);
 
-	const statusData = {
+	return {
 		photoFiles,
 		videoFiles,
 	};
-
-	return statusData;
 }

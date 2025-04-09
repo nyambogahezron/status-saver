@@ -2,12 +2,13 @@
 	"expo": {
 		"name": "Status Saver",
 		"slug": "status-saver",
-		"version": "1.0.1",
+		"version": "1.0.2",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"userInterfaceStyle": "automatic",
 		"newArchEnabled": true,
 		"android": {
+			"runtimeVersion": "1.0.2",
 			"adaptiveIcon": {
 				"foregroundImage": "./assets/images/adaptive-icon.png",
 				"monochromeImage": "./assets/images/adaptive-icon.png",
@@ -15,11 +16,6 @@
 			},
 			"package": "com.hezron.statussaver",
 			"permissions": [
-				"android.permission.READ_EXTERNAL_STORAGE",
-				"android.permission.WRITE_EXTERNAL_STORAGE",
-				"android.permission.INTERNET",
-				"android.permission.ACCESS_MEDIA_LOCATION",
-				"android.permission.RECORD_AUDIO",
 				"android.permission.READ_EXTERNAL_STORAGE",
 				"android.permission.WRITE_EXTERNAL_STORAGE",
 				"android.permission.INTERNET",
@@ -68,9 +64,7 @@
 		"ios": {
 			"bundleIdentifier": "com.hezron.statussaver"
 		},
-		"runtimeVersion": {
-			"policy": "appVersion"
-		},
+		"runtimeVersion": "1.0.2",
 		"updates": {
 			"url": "https://u.expo.dev/b1dcd852-2804-4fb3-aeee-3483901e8b0f"
 		}

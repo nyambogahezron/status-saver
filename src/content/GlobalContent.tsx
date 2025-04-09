@@ -1,10 +1,12 @@
 import { LoadSavedFiles, LoadStatusFiles, SaveFile } from '@/utils/file-api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { WHATSAPP_STATUS_PATH } from '@/utils/file-api';
 
 interface ImageStatus {
-	url: string;
+	uri: string;
 	name: string;
+	type?: 'image' | 'video' | 'audio';
 }
 
 interface GlobalContextProps {
@@ -45,16 +47,38 @@ export default function GlobalProvider({
 	const [isPermissionGranted, setIsPermissionGranted] = useState(false);
 
 	async function checkForPermissions() {
-		const isStatusFolder = await AsyncStorage.getItem('WHATSAPP_STATUS_STORE');
+		try {
+			const isStatusFolder = await AsyncStorage.getItem(
+				'WHATSAPP_STATUS_STORE'
+			);
+			const statusFolderUri = await AsyncStorage.getItem('statusFolderUri');
 
-		const statusFolderUri = await AsyncStorage.getItem('statusFolderUri');
-
-		if (isStatusFolder && statusFolderUri) {
-			setIsPermissionGranted(true);
+			if (isStatusFolder && statusFolderUri) {
+				setIsPermissionGranted(true);
+				// Load files immediately if permissions are granted
+				await fetchStatus();
+				await fetchSavedStatus();
+			} else {
+				// If no permissions, try to get them
+				const hasPermission = await LoadStatusFiles();
+				if (
+					hasPermission.photoFiles.length > 0 ||
+					hasPermission.videoFiles.length > 0
+				) {
+					setIsPermissionGranted(true);
+					await AsyncStorage.setItem('WHATSAPP_STATUS_STORE', 'true');
+					await AsyncStorage.setItem('statusFolderUri', WHATSAPP_STATUS_PATH);
+				}
+			}
+		} catch (error) {
+			console.error('Error checking permissions:', error);
+			setIsError(true);
 		}
 	}
 
-	checkForPermissions();
+	useEffect(() => {
+		checkForPermissions();
+	}, []);
 
 	/**
 	 * @description Fetches the saved status
@@ -71,14 +95,16 @@ export default function GlobalProvider({
 				) {
 					setSavedImageStatus(
 						savedStatusData.photoFiles.map((file) => ({
-							url: file.uri,
+							uri: file.uri,
 							name: file.name,
+							type: 'image' as const,
 						}))
 					);
 					setSavedVideoStatus(
 						savedStatusData.videoFiles.map((file) => ({
-							url: file.uri,
+							uri: file.uri,
 							name: file.name,
+							type: 'video' as const,
 						}))
 					);
 				}
@@ -92,24 +118,32 @@ export default function GlobalProvider({
 	async function fetchStatus() {
 		try {
 			setIsLoading(true);
+			console.log('Starting to fetch status files...');
 			const statusData = await LoadStatusFiles();
+			console.log('Received status data:', statusData);
+
 			if (
 				statusData &&
 				'photoFiles' in statusData &&
 				'videoFiles' in statusData
 			) {
-				setImageStatus(
-					statusData.photoFiles.map((file) => ({
-						url: file.uri,
-						name: file.name,
-					}))
-				);
-				setVideoStatus(
-					statusData.videoFiles.map((file) => ({
-						url: file.uri,
-						name: file.name,
-					}))
-				);
+				const newImageStatus = statusData.photoFiles.map((file) => ({
+					uri: file.uri,
+					name: file.name,
+					type: 'image' as const,
+				}));
+				console.log('Setting image status:', newImageStatus.length);
+				setImageStatus(newImageStatus);
+
+				const newVideoStatus = statusData.videoFiles.map((file) => ({
+					uri: file.uri,
+					name: file.name,
+					type: 'video' as const,
+				}));
+				console.log('Setting video status:', newVideoStatus.length);
+				setVideoStatus(newVideoStatus);
+			} else {
+				console.log('Status data structure is invalid:', statusData);
 			}
 		} catch (error) {
 			console.error('Error loading status files:', error);
@@ -134,8 +168,9 @@ export default function GlobalProvider({
 
 		if (save) {
 			const newItem = {
-				url: URI,
+				uri: URI,
 				name: URI.split('/').pop() || 'unknown',
+				type: 'image' as const,
 			};
 
 			setSavedImageStatus([...savedImageStatus, newItem]);
@@ -143,9 +178,9 @@ export default function GlobalProvider({
 	}
 
 	useEffect(() => {
-		fetchSavedStatus();
-
-		fetchStatus();
+		if (isPermissionGranted) {
+			fetchSavedStatus();
+		}
 	}, [isPermissionGranted]);
 
 	return (

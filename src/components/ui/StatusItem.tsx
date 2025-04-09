@@ -20,7 +20,6 @@ import BackButton from '../navigation/BackButton';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEvent } from 'expo';
 import { useGlobalContext } from '@/content/GlobalContent';
-import { DeleteFile } from '@/utils/file-api';
 
 type Status = {
 	url: string;
@@ -33,6 +32,10 @@ type StatusItemProps = {
 	status: any;
 	statusType: 'image' | 'video' | 'audio';
 	currentPage?: 'save' | 'otherPage';
+};
+
+const DeleteFile = async () => {
+	return console.log('del');
 };
 
 const VideoItem = React.memo(({ url }: { url: string }) => {
@@ -98,7 +101,8 @@ export default function StatusItem({
 
 	const handleOnStatusDelete = async () => {
 		if (selectedIndex !== null) {
-			const res = await DeleteFile(status[selectedIndex].url);
+			const res = await DeleteFile();
+			// const res = await DeleteFile(status[selectedIndex].url);
 
 			if (res) {
 				const newStatus = status
@@ -146,7 +150,7 @@ export default function StatusItem({
 				>
 					<Image
 						style={styles.statusImage}
-						source={status.url}
+						source={{ uri: status.uri }}
 						placeholder={{ blurHash }}
 						contentFit='cover'
 						transition={1000}
@@ -229,11 +233,11 @@ export default function StatusItem({
 									viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
 									renderItem={({ item }) =>
 										item.type === 'video' ? (
-											<VideoItem url={item.url} />
+											<VideoItem url={item.uri} />
 										) : (
 											<Image
 												style={styles.fullScreenImage}
-												source={item.url}
+												source={{ uri: item.uri }}
 												contentFit='contain'
 												transition={1000}
 											/>
