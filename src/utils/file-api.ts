@@ -10,8 +10,6 @@ const STORAGE_KEY = 'WHATSAPP_STATUS_STORE';
 // Possible WhatsApp status paths
 const WHATSAPP_STATUS_PATHS = [
 	'/storage/emulated/0/Android/media/com.whatsapp/WhatsApp/Media/.Statuses',
-	'/storage/emulated/0/WhatsApp/Media/.Statuses',
-	'/storage/emulated/0/WhatsApp/.Statuses',
 ];
 
 export const WHATSAPP_STATUS_PATH = WHATSAPP_STATUS_PATHS[0];
@@ -63,6 +61,28 @@ export async function selectWhatsAppStatusFolder() {
 }
 
 /**
+ * @description Try to find WhatsApp status folder automatically
+ */
+async function findWhatsAppStatusFolder() {
+	console.log('Trying to find WhatsApp status folder automatically...');
+	for (const path of WHATSAPP_STATUS_PATHS) {
+		try {
+			console.log(`Checking path: ${path}`);
+			const exists = await RNFS.exists(path);
+			if (exists) {
+				console.log(`Found WhatsApp status folder: ${path}`);
+				await AsyncStorage.setItem(STORAGE_FOLDER_KEY, path);
+				return path;
+			}
+		} catch (error) {
+			console.error(`Error checking path ${path}:`, error);
+		}
+	}
+	console.log('Could not find WhatsApp status folder automatically');
+	return null;
+}
+
+/**
  * @description Request necessary permissions for accessing storage
  */
 async function requestStoragePermission() {
@@ -72,8 +92,12 @@ async function requestStoragePermission() {
 				// For Android 11 and above, we need to use SAF
 				const storedPath = await AsyncStorage.getItem(STORAGE_FOLDER_KEY);
 				if (!storedPath) {
-					Toast('Please select the WhatsApp status folder');
-					return false;
+					// Try to find the WhatsApp status folder automatically
+					const foundPath = await findWhatsAppStatusFolder();
+					if (!foundPath) {
+						Toast('Please select the WhatsApp status folder');
+						return false;
+					}
 				}
 				return true;
 			} else {
@@ -109,28 +133,13 @@ async function loadFilesFromDirectory(
 		console.log(`Loading files from: ${directoryPath}`);
 		const exists = await RNFS.exists(directoryPath);
 		if (!exists) {
-			console.log('Directory does not exist');
+			console.log(`Directory does not exist: ${directoryPath}`);
 			return { photoFiles: [], videoFiles: [] };
 		}
 
 		// First try to read the directory
 		let files = await RNFS.readDir(directoryPath);
 		console.log(`Found ${files.length} files in directory:`, files);
-
-		// If no files found in .Statuses, try to find the actual status files
-		if (files.length === 0 && directoryPath.includes('.Statuses')) {
-			console.log(
-				'No files found in .Statuses, trying to find status files...'
-			);
-			// Try to find files in the parent directory
-			const parentDir = directoryPath.substring(
-				0,
-				directoryPath.lastIndexOf('/')
-			);
-			console.log('Checking parent directory:', parentDir);
-			files = await RNFS.readDir(parentDir);
-			console.log(`Found ${files.length} files in parent directory:`, files);
-		}
 
 		// Filter files that are actual files (not directories) and have valid names
 		const statusFiles = files
@@ -169,6 +178,29 @@ async function loadFilesFromDirectory(
 }
 
 /**
+ * @description Try all possible WhatsApp status paths
+ */
+async function tryAllWhatsAppStatusPaths(): Promise<StatusData> {
+	for (const path of WHATSAPP_STATUS_PATHS) {
+		try {
+			console.log(`Trying path: ${path}`);
+			const statusData = await loadFilesFromDirectory(path);
+			if (
+				statusData.photoFiles.length > 0 ||
+				statusData.videoFiles.length > 0
+			) {
+				console.log(`Found files in ${path}`);
+				await AsyncStorage.setItem(STORAGE_FOLDER_KEY, path);
+				return statusData;
+			}
+		} catch (error) {
+			console.error(`Error checking path ${path}:`, error);
+		}
+	}
+	return { photoFiles: [], videoFiles: [] };
+}
+
+/**
  * @description Loads the status files
  * @returns Status files
  */
@@ -187,34 +219,53 @@ export async function LoadStatusFiles(): Promise<StatusData> {
 
 		// Get the stored folder path
 		const storedPath = await AsyncStorage.getItem(STORAGE_FOLDER_KEY);
-		const folderPath = storedPath || WHATSAPP_STATUS_PATH;
-		console.log('Using folder path:', folderPath);
 
-		// Load files from the selected folder
-		const statusData = await loadFilesFromDirectory(folderPath);
+		if (storedPath) {
+			console.log('Using stored folder path:', storedPath);
+			// Load files from the stored folder
+			const statusData = await loadFilesFromDirectory(storedPath);
 
-		// If no files found in status folder, try the WhatsApp directory
-		if (
-			statusData.photoFiles.length === 0 &&
-			statusData.videoFiles.length === 0
-		) {
-			console.log(
-				'No files found in status folder, trying WhatsApp directory...'
-			);
-			const whatsappData = await loadFilesFromDirectory(SAVE_STORAGE_FOLDER);
+			// If files found, return them
 			if (
-				whatsappData.photoFiles.length > 0 ||
-				whatsappData.videoFiles.length > 0
+				statusData.photoFiles.length > 0 ||
+				statusData.videoFiles.length > 0
 			) {
-				console.log('Found files in WhatsApp directory');
-				return whatsappData;
+				console.log(`Found files in stored path: ${storedPath}`);
+				return statusData;
 			}
-			Toast(
-				'No status files found. Please check if WhatsApp has any statuses.'
+
+			console.log(
+				'No files found in stored path, trying all possible paths...'
 			);
+		} else {
+			console.log('No stored path, trying all possible paths...');
 		}
 
-		return statusData;
+		// Try all possible WhatsApp status paths
+		const allPathsData = await tryAllWhatsAppStatusPaths();
+		if (
+			allPathsData.photoFiles.length > 0 ||
+			allPathsData.videoFiles.length > 0
+		) {
+			return allPathsData;
+		}
+
+		// If still no files found, try the WhatsApp directory as a last resort
+		console.log(
+			'No files found in any status paths, trying WhatsApp directory...'
+		);
+		const whatsappData = await loadFilesFromDirectory(SAVE_STORAGE_FOLDER);
+		if (
+			whatsappData.photoFiles.length > 0 ||
+			whatsappData.videoFiles.length > 0
+		) {
+			console.log('Found files in WhatsApp directory');
+			// Don't store this as the status folder, as it's just a fallback
+			return whatsappData;
+		}
+
+		Toast('No status files found. Please check if WhatsApp has any statuses.');
+		return { photoFiles: [], videoFiles: [] };
 	} catch (error) {
 		console.error('Error loading WhatsApp status folder:', error);
 		Toast('Failed to load WhatsApp statuses');
